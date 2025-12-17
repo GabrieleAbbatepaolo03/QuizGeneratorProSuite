@@ -17,6 +17,7 @@ class HistoryTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onRename;
+  final VoidCallback onExport; // <--- NUOVO
 
   const HistoryTile({
     super.key,
@@ -24,6 +25,7 @@ class HistoryTile extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
     required this.onRename,
+    required this.onExport, // <--- NUOVO
   });
 
   @override
@@ -92,11 +94,16 @@ class HistoryTile extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // EXPORT BUTTON
+            IconButton(
+              icon: const Icon(CupertinoIcons.share, size: 20, color: Colors.blueAccent),
+              tooltip: "Export JSON",
+              onPressed: onExport,
+            ),
             IconButton(
               icon: const Icon(CupertinoIcons.pencil, size: 20, color: kVividGreen),
               onPressed: onRename,
             ),
-            // ICONLY DELETE
             IconButton(
               icon: const Icon(IconlyLight.delete, size: 20, color: Colors.redAccent),
               onPressed: onDelete,

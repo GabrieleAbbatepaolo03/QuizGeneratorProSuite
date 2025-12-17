@@ -1,14 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:iconly/iconly.dart'; // Import Iconly
+import 'package:iconly/iconly.dart';
 import 'package:quiz_generator_pro/services/api_service.dart';
 import 'package:quiz_generator_pro/models/quiz_models.dart';
 import 'package:quiz_generator_pro/services/history_service.dart';
 import 'package:quiz_generator_pro/screens/study_screen.dart';
-import 'package:quiz_generator_pro/widgets/home_widgets.dart'; // Contiene EmptyStateButton
+import 'package:quiz_generator_pro/widgets/home_widgets.dart';
 import 'package:quiz_generator_pro/l10n/app_localizations.dart';
 import 'package:quiz_generator_pro/main.dart';
 
@@ -30,9 +31,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   // Stato Generazione
   bool _isGenerating = false;
   double _generationProgress = 0.0;
-  Timer? _pollingTimer; // Timer per il polling
+  Timer? _pollingTimer; 
   
-  // Stato Post-Generazione (Quiz Pronto ma non aperto)
   QuizSession? _generatedSession;
 
   String? _selectedModelId;
@@ -61,7 +61,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Future<void> _refreshData() async {
     setState(() => _isLoadingData = true);
-    final status = await ApiService.getSystemStatus();
+    // Tolleranza per backend offline (permettiamo di usare l'app in sola lettura)
+    Map<String, dynamic> status = {'files': [], 'models': []};
+    try {
+      status = await ApiService.getSystemStatus();
+    } catch (e) {
+      // Backend offline, ma continuiamo per permettere l'uso della cronologia
+      debugPrint("Backend offline: $e");
+    }
+
     final history = await QuizHistoryService.getHistory();
     
     if (mounted) {
@@ -71,13 +79,71 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         _history = history;
         _isLoadingData = false;
         
-        if (_selectedModelId == null && status['models'] != null) {
+        if (_selectedModelId == null && status['models'] != null && (status['models'] as List).isNotEmpty) {
           final models = (status['models'] as List).map((m) => ModelInfo.fromJson(m)).toList();
           if (models.isNotEmpty) {
             _selectedModelId = models.firstWhere((m) => m.active, orElse: () => models.first).id;
           }
         }
       });
+    }
+  }
+
+  // --- EXPORT / IMPORT LOGIC ---
+  Future<void> _exportSession(QuizSession session) async {
+    try {
+      // 1. Converti in JSON
+      String jsonStr = jsonEncode(session.toJson());
+      String fileName = "quiz_${session.topic.replaceAll(' ', '_')}.json";
+
+      // 2. Chiedi dove salvare
+      String? outputFile = await FilePicker.platform.saveFile(
+        dialogTitle: 'Export Quiz Session',
+        fileName: fileName,
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      // 3. Scrivi file
+      if (outputFile != null) {
+        // Aggiungi estensione se manca (Windows a volte non la mette in automatico)
+        if (!outputFile.toLowerCase().endsWith('.json')) {
+          outputFile += '.json';
+        }
+        await File(outputFile).writeAsString(jsonStr);
+        if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Quiz Exported Successfully!")));
+      }
+    } catch (e) {
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Export Failed: $e")));
+    }
+  }
+
+  Future<void> _importSession() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        File file = File(result.files.single.path!);
+        String content = await file.readAsString();
+        
+        // Parsing
+        Map<String, dynamic> jsonData = jsonDecode(content);
+        // Rigenera ID per evitare conflitti o mantieni quello originale se preferisci
+        jsonData['id'] = DateTime.now().millisecondsSinceEpoch.toString(); 
+        
+        QuizSession importedSession = QuizSession.fromJson(jsonData);
+        
+        // Salva
+        await QuizHistoryService.saveSession(importedSession);
+        await _refreshData();
+        
+        if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Quiz Imported Successfully!")));
+      }
+    } catch (e) {
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Import Failed (Invalid JSON): $e")));
     }
   }
 
@@ -142,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  // --- LOGICA GENERAZIONE CON POLLING ---
+  // --- GENERATION LOGIC ---
   Future<void> _startQuizGeneration() async {
     if (_isGenerating) return;
 
@@ -160,7 +226,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       final locale = Localizations.localeOf(context).languageCode;
       final prompt = _promptController.text.isEmpty ? "General review" : _promptController.text;
       
-      // 1. Avvia generazione
       final jobId = await ApiService.startQuizGeneration(
         _numQuestions.round(), 
         prompt, 
@@ -169,14 +234,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         _maxOptions
       );
 
-      if (jobId == null) {
-        throw "Failed to start generation";
-      }
+      if (jobId == null) throw "Failed to start generation";
 
-      // 2. Polling loop
       _pollingTimer = Timer.periodic(const Duration(milliseconds: 1000), (timer) async {
         final status = await ApiService.checkQuizStatus(jobId);
-        
         if (status == null || !mounted) return;
 
         final state = status['status'];
@@ -184,13 +245,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         final total = status['total'] as int;
 
         setState(() {
-          // Calcolo percentuale reale
           _generationProgress = total > 0 ? (progress / total) : 0.0;
         });
 
         if (state == 'completed') {
           timer.cancel();
-          
           final List<dynamic> questionsJson = status['result'];
           final questions = questionsJson.map((q) => QuizQuestion.fromJson(q)).toList();
 
@@ -202,7 +261,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               questions: questions
             );
             
-            // Pulizia
             await ApiService.clearAllFiles(); 
             await _refreshData(); 
             
@@ -229,13 +287,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Future<void> _openGeneratedQuiz() async {
     if (_generatedSession != null) {
       await QuizHistoryService.saveSession(_generatedSession!);
-      
       if (!mounted) return;
-
-      Navigator.push(
-        context, 
-        MaterialPageRoute(builder: (_) => StudyScreen(existingSession: _generatedSession, systemStatus: _systemStatus))
-      ).then((_) { 
+      Navigator.push(context, MaterialPageRoute(builder: (_) => StudyScreen(existingSession: _generatedSession, systemStatus: _systemStatus))).then((_) { 
         _refreshData();
         setState(() => _generatedSession = null); 
       });
@@ -278,30 +331,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             children: [
               Icon(CupertinoIcons.globe, size: 20, color: _vividGreen),
               const SizedBox(width: 4),
-              Theme(
-                data: Theme.of(context).copyWith(
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  hoverColor: Colors.transparent,
-                  focusColor: Colors.transparent,
-                ),
-                child: DropdownButton<Locale>(
-                  value: Localizations.localeOf(context),
-                  dropdownColor: const Color(0xFF2C2C2C),
-                  borderRadius: BorderRadius.circular(12),
-                  underline: Container(),
-                  elevation: 0,
-                  focusColor: Colors.transparent,
-                  icon: Icon(CupertinoIcons.chevron_down, size: 16, color: _vividGreen),
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  items: const [
-                      DropdownMenuItem(value: Locale('en'), child: Text("EN")),
-                      DropdownMenuItem(value: Locale('it'), child: Text("IT")),
-                  ],
-                  onChanged: (Locale? newLocale) {
-                    if (newLocale != null) QuizApp.setLocale(context, newLocale);
-                  },
-                ),
+              DropdownButton<Locale>(
+                value: Localizations.localeOf(context),
+                dropdownColor: const Color(0xFF2C2C2C),
+                underline: Container(),
+                icon: Icon(CupertinoIcons.chevron_down, size: 16, color: _vividGreen),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                items: const [
+                    DropdownMenuItem(value: Locale('en'), child: Text("EN")),
+                    DropdownMenuItem(value: Locale('it'), child: Text("IT")),
+                ],
+                onChanged: (Locale? newLocale) {
+                  if (newLocale != null) QuizApp.setLocale(context, newLocale);
+                },
               ),
             ],
           ),
@@ -339,6 +381,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         children: [
                           Text(l10n.activeFile, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[400], letterSpacing: 1.2)),
                           const SizedBox(height: 15),
+                          // FILE LIST CONTAINER
                           Container(
                             constraints: const BoxConstraints(maxHeight: 250),
                             decoration: BoxDecoration(
@@ -368,10 +411,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                     return ListTile(
                                       leading: Container(
                                         padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: Colors.redAccent.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(12)
-                                        ),
+                                        decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
                                         child: const Icon(CupertinoIcons.doc_fill, color: Colors.redAccent),
                                       ),
                                       title: Text(f, style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.white)),
@@ -447,13 +487,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
+          padding: const EdgeInsets.fromLTRB(24, 60, 24, 10),
           alignment: Alignment.centerLeft,
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(CupertinoIcons.time, color: _vividGreen),
-              const SizedBox(width: 12),
-              Text(l10n.quizHistory, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.5, color: Colors.white)),
+              Row(
+                children: [
+                  Icon(CupertinoIcons.time, color: _vividGreen),
+                  const SizedBox(width: 12),
+                  Text(l10n.quizHistory, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.5, color: Colors.white)),
+                ],
+              ),
+              // IMPORT BUTTON
+              IconButton(
+                onPressed: _importSession,
+                tooltip: "Import Quiz JSON",
+                icon: const Icon(CupertinoIcons.arrow_down_doc, color: Colors.white),
+              )
             ],
           ),
         ),
@@ -469,6 +520,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     session: _history[i],
                     onDelete: () => _deleteSession(_history[i].id),
                     onRename: () => _renameSession(_history[i]), 
+                    onExport: () => _exportSession(_history[i]), // LINK EXPORT
                     onTap: () {
                        if (Scaffold.of(ctx).hasDrawer) Navigator.pop(context);
                        Navigator.push(context, MaterialPageRoute(builder: (_) => StudyScreen(existingSession: _history[i], systemStatus: _systemStatus))).then((_) => _refreshData());
