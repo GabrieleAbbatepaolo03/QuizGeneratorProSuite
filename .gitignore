@@ -1,0 +1,26 @@
+# --- PYTHON & BACKEND ---
+backend/venv/
+backend/__pycache__/
+backend/dist/
+backend/build/
+backend/*.spec
+*.pyc
+
+# Dati locali (Non carichiamo i PDF o il Database vettoriale)
+backend/uploaded_files/*.pdf
+backend/vector_db_faiss/
+backend/vector_db/
+
+# --- FLUTTER & FRONTEND ---
+frontend/build/
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.pub-cache/
+frontend/.idea/
+frontend/windows/flutter/ephemeral/
+
+# --- SISTEMA & IDE ---
+.DS_Store
+.vscode/
+.idea/
