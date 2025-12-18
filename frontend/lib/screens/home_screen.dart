@@ -369,8 +369,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 icon: Icon(CupertinoIcons.chevron_down, size: 16, color: _vividGreen),
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 items: const [
-                    DropdownMenuItem(value: Locale('en'), child: Text("EN")),
-                    DropdownMenuItem(value: Locale('it'), child: Text("IT")),
+                    DropdownMenuItem(value: Locale('en'), child: Text("EN")), // Inglese
+                    DropdownMenuItem(value: Locale('it'), child: Text("IT")), // Italiano
+                    DropdownMenuItem(value: Locale('es'), child: Text("ES")), // Spagnolo
+                    DropdownMenuItem(value: Locale('zh'), child: Text("ZH")), // Cinese
+                    DropdownMenuItem(value: Locale('am'), child: Text("AM")), // Amarico
                 ],
                 onChanged: (Locale? newLocale) {
                   if (newLocale != null) QuizApp.setLocale(context, newLocale);

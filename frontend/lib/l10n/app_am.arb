@@ -1,0 +1,150 @@
+{
+  "dashboardTitle": "Quiz Generator Pro",
+  "noFileLoaded": "ምንም የእውቀት መሠረት አልተጫነም",
+  "uploadPdf": "PDF ሰነድ አክል",
+  "readingPdf": "PDF በማንበብ ላይ...",
+  "activeFile": "የእውቀት መሠረት:",
+  "chatWithAi": "ከ AI ጋር ተወያይ",
+  "generateQuiz": "ጥያቄዎችን አመንጭ",
+  "changeFile": "ፋይሎችን አስተዳድር",
+  "pdfUploaded": "PDF ወደ ጭንቅላት ታክሏል!",
+  "settingsTitle": "ስርዓት እና ቅንብሮች",
+  "detectedHardware": "የተገኘ ሃርድዌር",
+  "compatible": "ከኮምፒውተርዎ ጋር ይጣጣማል",
+  "incompatible": "ሃርድዌር በቂ አይደለም",
+  "active": "ንቁ",
+  "load": "ጫን",
+  "missingFile": "ፋይል ጠፍቷል",
+  "language": "ቋንቋ",
+  "selectLanguage": "የመተግበሪያ ቋንቋ",
+  "chatTitle": "ውይይት",
+  "chatHint": "ስለ ሰነድዎ ይጠይቁ...",
+  "quizTitle": "የጥያቄ አምራች",
+  "configQuiz": "ጥያቄዎን ያዋቅሩ",
+  "customPromptLabel": "የትኩረት አቅጣጫ እና ቅጥ",
+  "customPromptHint": "ምሳሌ: ስለ ኳንተም ፊዚክስ ከባድ ጥያቄዎች, አካዳሚክ ቅጥ...",
+  "numberOfQuestions": "የጥያቄዎች ብዛት",
+  "difficultyLabel": "የክብደት ደረጃ",
+  "generateBtn": "ጥያቄ አመንጭ",
+  "startQuizBtn": "ጥያቄ ጀምር",
+  "generating": "በማመንጨት ላይ...",
+  "quizResults": "የጥያቄ ውጤቶች",
+  "newQuiz": "አዲስ ጥያቄ",
+  "correctAnswer": "መልስ:",
+  "quizHistory": "የጥያቄ ታሪክ",
+  "noHistory": "እስካሁን የተወሰደ ጥያቄ የለም",
+  "delete": "ሰርዝ",
+  "startSession": "የጥናት ጊዜ ጀምር",
+  "subStart": "ውይይት • ጥያቄ • ማረጋገጥ",
+  "aiChat": "AI ውይይት",
+  "newSession": "አዲስ ክፍለ ጊዜ",
+  "config": "ማዋቀሪያ",
+  "questions": "ጥያቄዎች",
+  "sceltaMultipla": "ምርጫ",
+  "rispostaAperta": "ክፍት መልስ",
+  "feedbackAI": "AI አስተያየት",
+  "writeAnswer": "መልስዎን እዚህ ይጻፉ...",
+  "sendAnswer": "መልስ አስገባ",
+  "previous": "ቀዳሚ",
+  "next": "ቀጣይ",
+  "aiAssistant": "AI ረዳት",
+  "quizCompleted": "ጥያቄ ተጠናቅቋል!",
+  "retry": "እንደገና ሞክር",
+  "generateMore": "ተጨማሪ አመንጭ",
+  "keepOldSession": "የቀድሞውን ክፍለ ጊዜ ማቆየት ይፈልጋሉ?",
+  "keep": "አቆይ",
+  "discard": "አስወግድ",
+  "quizTypeMixed": "ቅልቅል (ክፍት + ምርጫ)",
+  "quizTypeOpen": "ክፍት ጥያቄዎች ብቻ",
+  "quizTypeMultiple": "ምርጫ ብቻ",
+  "optionsLabel": "ምርጫዎች በጥያቄ",
+  "resultsSummary": "የውጤት ማጠቃለያ",
+  "score": "ውጤት",
+  "restartShuffle": "እንደገና ጀምር እና ቀላቅል",
+  "reviewErrors": "ስህተቶችን እንደገና ሞክር",
+  "backToHome": "ወደ መነሻ ተመለስ",
+  "restartQuiz": "እንደገና ጀምር",
+  "errorFileExists": "ስህተት: '{fileName}' በቤተ-መጽሐፍት ውስጥ አስቀድሞ አለ።",
+  "@errorFileExists": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "errorUploadFailed": "ለ {fileName} መጫን አልተሳካም",
+  "@errorUploadFailed": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "errorSelectFile": "እባክዎ ቢያንስ አንድ ፋይል ከማህደሩ ይምረጡ።",
+  "errorLoadContext": "ይዘት መጫን አልተሳካም። እባክዎ የኋላ ግንኙነትን ያረጋግጡ።",
+  "errorStartGeneration": "የማመንጨት ስራ መጀመር አልተሳካም",
+  "successExport": "ጥያቄ በተሳካ ሁኔታ ተልኳል!",
+  "errorExport": "መላክ አልተሳካም: {error}",
+  "@errorExport": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "successImport": "ጥያቄ በተሳካ ሁኔታ ገብቷል!",
+  "errorImport": "ማስገባት አልተሳካም: {error}",
+  "@errorImport": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameSession": "ክፍለ ጊዜን እንደገና ይሰይሙ",
+  "renameQuiz": "ጥያቄን እንደገና ይሰይሙ",
+  "newName": "አዲስ ስም",
+  "save": "አስቀምጥ",
+  "cancel": "ሰርዝ",
+  "addNewPdf": "አዲስ PDF አክል",
+  "uploading": "በመጫን ላይ...",
+  "libraryEmpty": "ቤተ-መጽሐፍት ባዶ ነው",
+  "selectedFiles": "{count} ተመርጠዋል",
+  "@selectedFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteSelected": "የተመረጡትን ሰርዝ",
+  "importedModeWarning": "⚠️ የገቡበት ሁነታ: ምንጭ ፋይሎች አልተገኙም። የ AI ውይይት እና ደረጃ አሰጣጥ ተሰናክለዋል።",
+  "aiGradingUnavailable": "⚠️ ምንጭ ፋይሎች ስለጎደሉ የ AI ደረጃ አሰጣጥ አይገኝም (የገቡበት ሁነታ)።",
+  "aiChatUnavailable": "⚠️ AI አይገኝም: ምንጭ ሰነዶች ጠፍተዋል። ለዚህ የገባ ክፍለ ጊዜ ውይይት ተሰናክሏል።",
+  "aiRegenUnavailable": "በገባ ሁነታ የ AI እንደገና ማመንጨት አይገኝም።",
+  "noQuestionsFound": "ምንም ጥያቄዎች አልተገኙም።",
+  "editQuestion": "ጥያቄን ያርትዑ",
+  "updateAi": "AIን አዘምን",
+  "aiEvaluation": "የ AI ግምገማ: {score}/100",
+  "@aiEvaluation": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "aiUnavailable": "AI አይገኝም",
+  "feedbackLabel": "አስተያየት",
+  "idealAnswerLabel": "ተስማሚ መልስ",
+  "systemSpecs": "የስርዓት ዝርዝሮች",
+  "backendApi": "የኋላ ኤፒአይ",
+  "hardware": "ሃርድዌር",
+  "aiModels": "AI ሞዴሎች",
+  "close": "ዝጋ",
+  "aiModelLabel": "AI ሞዴል",
+  "typeLabel": "ዓይነት",
+  "allTypes": "ሁሉም ዓይነቶች",
+  "openType": "ክፍት",
+  "multipleChoiceType": "ምርጫ",
+  "allFiles": "ሁሉም ፋይሎች"
+}

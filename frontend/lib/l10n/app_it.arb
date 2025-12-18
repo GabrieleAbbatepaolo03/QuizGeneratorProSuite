@@ -1,5 +1,5 @@
 {
-  "dashboardTitle": "Study Buddy",
+  "dashboardTitle": "Quiz Generator Pro",
   "noFileLoaded": "Nessuna Knowledge Base Caricata",
   "uploadPdf": "Aggiungi Documento PDF",
   "readingPdf": "Lettura PDF in corso...",
@@ -8,7 +8,6 @@
   "generateQuiz": "Genera Quiz",
   "changeFile": "Gestisci File",
   "pdfUploaded": "PDF Aggiunto al Cervello!",
-
   "settingsTitle": "Impostazioni & Sistema",
   "detectedHardware": "HARDWARE RILEVATO",
   "compatible": "Compatibile con il tuo PC",
@@ -18,10 +17,8 @@
   "missingFile": "File Mancante",
   "language": "Lingua",
   "selectLanguage": "Lingua App",
-
   "chatTitle": "Chat",
   "chatHint": "Chiedi qualcosa sul documento...",
-
   "quizTitle": "Generatore Quiz",
   "configQuiz": "Configura il tuo Quiz",
   "customPromptLabel": "Argomento e Stile",
@@ -57,19 +54,16 @@
   "keepOldSession": "Mantenere sessione precedente?",
   "keep": "Mantieni",
   "discard": "Scarta",
-
   "quizTypeMixed": "Misto (Aperta + Multipla)",
   "quizTypeOpen": "Solo Domande Aperte",
   "quizTypeMultiple": "Solo Scelta Multipla",
   "optionsLabel": "Opzioni per domanda",
-
   "resultsSummary": "Riepilogo Risultati",
   "score": "Punteggio",
   "restartShuffle": "Riavvia & Mischia",
   "reviewErrors": "Ripeti Errori",
   "backToHome": "Torna alla Home",
   "restartQuiz": "Ricomincia",
-
   "errorFileExists": "Errore: '{fileName}' esiste già nella libreria.",
   "@errorFileExists": {
     "placeholders": {

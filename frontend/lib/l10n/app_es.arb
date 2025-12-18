@@ -1,0 +1,150 @@
+{
+  "dashboardTitle": "Quiz Generator Pro",
+  "noFileLoaded": "Ninguna base de conocimiento cargada",
+  "uploadPdf": "Añadir documento PDF",
+  "readingPdf": "Leyendo PDF...",
+  "activeFile": "Base de conocimiento:",
+  "chatWithAi": "Chatear con IA",
+  "generateQuiz": "Generar Cuestionario",
+  "changeFile": "Gestionar Archivos",
+  "pdfUploaded": "¡PDF añadido al cerebro!",
+  "settingsTitle": "Sistema y Configuración",
+  "detectedHardware": "HARDWARE DETECTADO",
+  "compatible": "Compatible con tu PC",
+  "incompatible": "Hardware insuficiente",
+  "active": "Activo",
+  "load": "Cargar",
+  "missingFile": "Archivo faltante",
+  "language": "Idioma",
+  "selectLanguage": "Idioma de la App",
+  "chatTitle": "Chat",
+  "chatHint": "Pregunta sobre tu documento...",
+  "quizTitle": "Generador de Cuestionarios",
+  "configQuiz": "Configura tu Cuestionario",
+  "customPromptLabel": "Enfoque y Estilo",
+  "customPromptHint": "Ej: Preguntas difíciles sobre Física Cuántica, estilo académico...",
+  "numberOfQuestions": "Número de Preguntas",
+  "difficultyLabel": "Nivel de Dificultad",
+  "generateBtn": "Generar Cuestionario",
+  "startQuizBtn": "Iniciar Cuestionario",
+  "generating": "Generando...",
+  "quizResults": "Resultados",
+  "newQuiz": "Nuevo Cuestionario",
+  "correctAnswer": "Respuesta:",
+  "quizHistory": "Historial",
+  "noHistory": "Aún no hay cuestionarios",
+  "delete": "Eliminar",
+  "startSession": "Iniciar Sesión de Estudio",
+  "subStart": "Chat • Quiz • Verificar",
+  "aiChat": "Chat IA",
+  "newSession": "Nueva Sesión",
+  "config": "Configuración",
+  "questions": "Preguntas",
+  "sceltaMultipla": "Opción Múltiple",
+  "rispostaAperta": "Respuesta Abierta",
+  "feedbackAI": "Feedback IA",
+  "writeAnswer": "Escribe tu respuesta aquí...",
+  "sendAnswer": "Enviar Respuesta",
+  "previous": "Anterior",
+  "next": "Siguiente",
+  "aiAssistant": "Asistente IA",
+  "quizCompleted": "¡Cuestionario Completado!",
+  "retry": "Reintentar",
+  "generateMore": "Generar Más",
+  "keepOldSession": "¿Mantener sesión anterior?",
+  "keep": "Mantener",
+  "discard": "Descartar",
+  "quizTypeMixed": "Mixto (Abierta + OM)",
+  "quizTypeOpen": "Solo Preguntas Abiertas",
+  "quizTypeMultiple": "Solo Opción Múltiple",
+  "optionsLabel": "Opciones por pregunta",
+  "resultsSummary": "Resumen de Resultados",
+  "score": "Puntuación",
+  "restartShuffle": "Reiniciar y Barajar",
+  "reviewErrors": "Revisar Errores",
+  "backToHome": "Volver al Inicio",
+  "restartQuiz": "Reiniciar",
+  "errorFileExists": "Error: '{fileName}' ya existe en la biblioteca.",
+  "@errorFileExists": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "errorUploadFailed": "Error al cargar {fileName}",
+  "@errorUploadFailed": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "errorSelectFile": "Por favor, selecciona al menos un archivo del Archivo.",
+  "errorLoadContext": "Error al cargar el contexto. Verifica la conexión con el backend.",
+  "errorStartGeneration": "Error al iniciar el trabajo de generación",
+  "successExport": "¡Cuestionario exportado con éxito!",
+  "errorExport": "Error en la exportación: {error}",
+  "@errorExport": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "successImport": "¡Cuestionario importado con éxito!",
+  "errorImport": "Error en la importación: {error}",
+  "@errorImport": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameSession": "Renombrar Sesión",
+  "renameQuiz": "Renombrar Cuestionario",
+  "newName": "Nuevo nombre",
+  "save": "Guardar",
+  "cancel": "Cancelar",
+  "addNewPdf": "Añadir Nuevo PDF",
+  "uploading": "Subiendo...",
+  "libraryEmpty": "La biblioteca está vacía",
+  "selectedFiles": "{count} seleccionados",
+  "@selectedFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteSelected": "Eliminar Seleccionados",
+  "importedModeWarning": "⚠️ MODO IMPORTADO: Archivos fuente no encontrados. Chat IA y Calificación desactivados.",
+  "aiGradingUnavailable": "⚠️ Calificación IA no disponible porque faltan archivos fuente (Modo Importado).",
+  "aiChatUnavailable": "⚠️ IA no disponible: Faltan documentos fuente. Chat desactivado para esta sesión importada.",
+  "aiRegenUnavailable": "Regeneración IA no disponible en Modo Importado.",
+  "noQuestionsFound": "No se encontraron preguntas.",
+  "editQuestion": "Editar Pregunta",
+  "updateAi": "Actualizar IA",
+  "aiEvaluation": "Evaluación IA: {score}/100",
+  "@aiEvaluation": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "aiUnavailable": "IA No Disponible",
+  "feedbackLabel": "COMENTARIOS",
+  "idealAnswerLabel": "RESPUESTA IDEAL",
+  "systemSpecs": "Especificaciones del Sistema",
+  "backendApi": "API Backend",
+  "hardware": "HARDWARE",
+  "aiModels": "MODELOS IA",
+  "close": "Cerrar",
+  "aiModelLabel": "Modelo IA",
+  "typeLabel": "Tipo",
+  "allTypes": "Todos los Tipos",
+  "openType": "Abierta",
+  "multipleChoiceType": "Opción Múltiple",
+  "allFiles": "Todos los Archivos"
+}

@@ -285,7 +285,7 @@ class QuizCard extends StatelessWidget {
                              // Usiamo il colore ambra se siamo in warning per coerenza
                              Text("IDEAL ANSWER", style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: isWarning ? Colors.amber : kVividGreen, letterSpacing: 1.2)),
                              const SizedBox(height: 5),
-                             Text(idealPart!, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14, fontStyle: FontStyle.italic, height: 1.5)),
+                             Text(idealPart, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14, fontStyle: FontStyle.italic, height: 1.5)),
                           ]
                         ],
                       ),

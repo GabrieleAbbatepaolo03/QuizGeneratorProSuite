@@ -1,0 +1,150 @@
+{
+  "dashboardTitle": "Quiz Generator Pro",
+  "noFileLoaded": "未加载知识库",
+  "uploadPdf": "添加 PDF 文档",
+  "readingPdf": "正在读取 PDF...",
+  "activeFile": "知识库:",
+  "chatWithAi": "与 AI 聊天",
+  "generateQuiz": "生成测验",
+  "changeFile": "管理文件",
+  "pdfUploaded": "PDF 已添加到大脑！",
+  "settingsTitle": "系统与设置",
+  "detectedHardware": "检测到的硬件",
+  "compatible": "与您的电脑兼容",
+  "incompatible": "硬件不足",
+  "active": "活跃",
+  "load": "加载",
+  "missingFile": "文件缺失",
+  "language": "语言",
+  "selectLanguage": "应用语言",
+  "chatTitle": "聊天",
+  "chatHint": "询问关于您文档的问题...",
+  "quizTitle": "测验生成器",
+  "configQuiz": "配置您的测验",
+  "customPromptLabel": "测验重点与风格",
+  "customPromptHint": "例如：关于量子物理的难题，学术风格...",
+  "numberOfQuestions": "题目数量",
+  "difficultyLabel": "难度级别",
+  "generateBtn": "生成测验",
+  "startQuizBtn": "开始测验",
+  "generating": "正在生成...",
+  "quizResults": "测验结果",
+  "newQuiz": "新测验",
+  "correctAnswer": "答案:",
+  "quizHistory": "测验历史",
+  "noHistory": "尚未进行测验",
+  "delete": "删除",
+  "startSession": "开始学习",
+  "subStart": "聊天 • 测验 • 验证",
+  "aiChat": "AI 聊天",
+  "newSession": "新会话",
+  "config": "配置",
+  "questions": "问题",
+  "sceltaMultipla": "多项选择",
+  "rispostaAperta": "开放式回答",
+  "feedbackAI": "AI 反馈",
+  "writeAnswer": "在此输入您的答案...",
+  "sendAnswer": "提交答案",
+  "previous": "上一个",
+  "next": "下一个",
+  "aiAssistant": "AI 助手",
+  "quizCompleted": "测验完成！",
+  "retry": "重试",
+  "generateMore": "生成更多",
+  "keepOldSession": "保留之前的会话？",
+  "keep": "保留",
+  "discard": "丢弃",
+  "quizTypeMixed": "混合 (开放 + 多选)",
+  "quizTypeOpen": "仅开放式问题",
+  "quizTypeMultiple": "仅多项选择",
+  "optionsLabel": "每个问题的选项数",
+  "resultsSummary": "结果摘要",
+  "score": "得分",
+  "restartShuffle": "重新开始并打乱",
+  "reviewErrors": "重试错误",
+  "backToHome": "返回首页",
+  "restartQuiz": "重新开始",
+  "errorFileExists": "错误：'{fileName}' 已存在于库中。",
+  "@errorFileExists": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "errorUploadFailed": "{fileName} 上传失败",
+  "@errorUploadFailed": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "errorSelectFile": "请从档案中至少选择一个文件。",
+  "errorLoadContext": "加载上下文失败。请检查后端连接。",
+  "errorStartGeneration": "启动生成任务失败",
+  "successExport": "测验导出成功！",
+  "errorExport": "导出失败: {error}",
+  "@errorExport": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "successImport": "测验导入成功！",
+  "errorImport": "导入失败: {error}",
+  "@errorImport": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameSession": "重命名会话",
+  "renameQuiz": "重命名测验",
+  "newName": "新名称",
+  "save": "保存",
+  "cancel": "取消",
+  "addNewPdf": "添加新 PDF",
+  "uploading": "上传中...",
+  "libraryEmpty": "库为空",
+  "selectedFiles": "已选择 {count} 个",
+  "@selectedFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteSelected": "删除选中项",
+  "importedModeWarning": "⚠️ 导入模式：未找到源文件。AI 聊天和评分已禁用。",
+  "aiGradingUnavailable": "⚠️ 由于缺少源文件（导入模式），AI 评分不可用。",
+  "aiChatUnavailable": "⚠️ AI 不可用：缺少源文档。此导入会话已禁用聊天。",
+  "aiRegenUnavailable": "导入模式下 AI 重新生成不可用。",
+  "noQuestionsFound": "未找到问题。",
+  "editQuestion": "编辑问题",
+  "updateAi": "更新 AI",
+  "aiEvaluation": "AI 评估: {score}/100",
+  "@aiEvaluation": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "aiUnavailable": "AI 不可用",
+  "feedbackLabel": "反馈",
+  "idealAnswerLabel": "理想答案",
+  "systemSpecs": "系统规格",
+  "backendApi": "后端 API",
+  "hardware": "硬件",
+  "aiModels": "AI 模型",
+  "close": "关闭",
+  "aiModelLabel": "AI 模型",
+  "typeLabel": "类型",
+  "allTypes": "所有类型",
+  "openType": "开放式",
+  "multipleChoiceType": "多项选择",
+  "allFiles": "所有文件"
+}

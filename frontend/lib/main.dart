@@ -14,6 +14,7 @@ void main() {
 class QuizApp extends StatefulWidget {
   const QuizApp({super.key});
 
+  // Metodo statico per cambiare lingua da qualsiasi punto dell'app
   static void setLocale(BuildContext context, Locale newLocale) {
     _QuizAppState? state = context.findAncestorStateOfType<_QuizAppState>();
     state?.setLocale(newLocale);
@@ -34,45 +35,43 @@ class _QuizAppState extends State<QuizApp> {
 
   @override
   Widget build(BuildContext context) {
-    // NUOVA PALETTE: VERDE VIVACE
     const Color bgDark = Color(0xFF0A0A0A); 
     const Color surfaceDark = Color(0xFF161616); 
-    const Color vividGreen = Color(0xFF00E676); // Verde brillante stile Cyberpunk
+    const Color vividGreen = Color(0xFF00E676); 
 
     return MaterialApp(
-      title: 'Study Buddy AI',
+      title: 'Quiz Generator Pro', // App name fixed globally
       debugShowCheckedModeBanner: false,
       locale: _locale, 
-      theme: ThemeData.dark().copyWith(
+      
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
         scaffoldBackgroundColor: bgDark,
         primaryColor: vividGreen,
         
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
+          backgroundColor: bgDark,
           elevation: 0,
-          titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Roboto'),
+          titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
           iconTheme: IconThemeData(color: Colors.white),
-        ),
-
-        cardTheme: CardThemeData(
-          color: surfaceDark,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.white.withOpacity(0.05))
-          ),
-          margin: EdgeInsets.zero,
         ),
 
         colorScheme: const ColorScheme.dark(
           primary: vividGreen,
           secondary: vividGreen,
           surface: surfaceDark,
+          onSurface: Colors.white,
+          background: bgDark,
+        ),
+
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.white),
         ),
 
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: const Color(0xFF202020),
+          fillColor: const Color(0xFF2C2C2C),
           labelStyle: TextStyle(color: Colors.grey[400]),
           hintStyle: TextStyle(color: Colors.grey[600]),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -83,7 +82,7 @@ class _QuizAppState extends State<QuizApp> {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: vividGreen,
-            foregroundColor: Colors.black, // Testo nero su verde per contrasto
+            foregroundColor: Colors.black, 
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -92,9 +91,10 @@ class _QuizAppState extends State<QuizApp> {
         
         sliderTheme: SliderThemeData(
           activeTrackColor: vividGreen,
-          inactiveTrackColor: Colors.grey[800],
+          inactiveTrackColor: Colors.grey[800], // FIXED: Gray background instead of dark/black
           thumbColor: Colors.white,
           overlayColor: vividGreen.withOpacity(0.2),
+          trackHeight: 4.0, 
         ),
       ),
       localizationsDelegates: const [
@@ -106,6 +106,9 @@ class _QuizAppState extends State<QuizApp> {
       supportedLocales: const [
         Locale('en'),
         Locale('it'),
+        Locale('es'),
+        Locale('zh'),
+        Locale('am'),
       ],
       home: const HomeScreen(),
     );

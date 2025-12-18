@@ -415,8 +415,9 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
                             child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(Colors.white))
                           ),
                           const SizedBox(width: 12),
+                          // FIX: Localized text for generating
                           Text(
-                            "Generating ${(widget.generationProgress * widget.numQuestions).round()} / ${widget.numQuestions.round()}",
+                            "${l10n.generating} ${(widget.generationProgress * widget.numQuestions).round()} / ${widget.numQuestions.round()}",
                             style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)
                           ),
                         ],
@@ -459,9 +460,6 @@ class EmptyStateButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Non ho trovato stringhe per questo specifico bottone nei file originali,
-    // quindi uso stringhe fisse o chiavi esistenti se appropriato.
-    // Sarebbe meglio aggiungere "uploadToUnlock" ai file .arb.
     return Container(
       height: 80,
       decoration: BoxDecoration(

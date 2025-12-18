@@ -1,5 +1,5 @@
 {
-  "dashboardTitle": "Study Buddy Dashboard",
+  "dashboardTitle": "Quiz Generator Pro",
   "noFileLoaded": "No Knowledge Base Loaded",
   "uploadPdf": "Add PDF Document",
   "readingPdf": "Reading PDF...",
@@ -8,7 +8,6 @@
   "generateQuiz": "Generate Quiz",
   "changeFile": "Manage Files",
   "pdfUploaded": "PDF Added to Brain!",
-
   "settingsTitle": "System & Settings",
   "detectedHardware": "DETECTED HARDWARE",
   "compatible": "Compatible with your PC",
@@ -18,10 +17,8 @@
   "missingFile": "Missing File",
   "language": "Language",
   "selectLanguage": "App Language",
-
   "chatTitle": "Chat",
   "chatHint": "Ask about your document...",
-
   "quizTitle": "Quiz Generator",
   "configQuiz": "Configure your Quiz",
   "customPromptLabel": "Quiz Focus & Style",
@@ -57,19 +54,16 @@
   "keepOldSession": "Keep previous session?",
   "keep": "Keep",
   "discard": "Discard",
-
   "quizTypeMixed": "Mixed (Open + MC)",
   "quizTypeOpen": "Open Questions Only",
   "quizTypeMultiple": "Multiple Choice Only",
   "optionsLabel": "Options per question",
-
   "resultsSummary": "Results Summary",
   "score": "Score",
   "restartShuffle": "Restart & Shuffle",
   "reviewErrors": "Retry Errors",
   "backToHome": "Back to Home",
   "restartQuiz": "Restart",
-
   "errorFileExists": "Error: '{fileName}' already exists in library.",
   "@errorFileExists": {
     "placeholders": {
