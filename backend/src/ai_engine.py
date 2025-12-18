@@ -12,6 +12,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS  # <--- CAMBIO QUI
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 
 # Import funzionanti nel tuo ambiente
 from langchain_classic.chains.retrieval import create_retrieval_chain
@@ -21,8 +22,12 @@ from langchain_classic.chains.combine_documents import create_stuff_documents_ch
 from .models import AVAILABLE_MODELS, QuizRequest
 from .utils import clean_json_output
 
+# Import locali
+from .models import AVAILABLE_MODELS, QuizRequest
+from .utils import clean_json_output
+
 # Costanti
-DB_DIR = "vector_db_faiss" # Cambiamo nome cartella per pulizia
+DB_DIR = "vector_db_faiss" 
 UPLOAD_DIR = "uploaded_files"
 
 class AIEngine:
@@ -36,18 +41,16 @@ class AIEngine:
         config = AVAILABLE_MODELS.get(model_id, AVAILABLE_MODELS["pro"])
         print(f"[AI] Connecting to Ollama: {config['id']}...")
         try:
-            self.llm = ChatOllama(model=config["id"], temperature=0.4, num_ctx=4096)
+            self.llm = ChatOllama(model=config["id"], temperature=0.3, num_ctx=4096)
             self.current_model_id = model_id
             return True
         except Exception as e:
             print(f"[AI Error] Connection failed: {e}")
             return False
 
+    # --- 1. GESTIONE DATABASE ---
     def rebuild_db(self):
-        """Legge i PDF e crea il database vettoriale FAISS"""
         gc.collect()
-        
-        # Pulisci vecchia cartella
         if os.path.exists(DB_DIR):
             try: shutil.rmtree(DB_DIR)
             except: pass
@@ -55,9 +58,7 @@ class AIEngine:
         if not os.path.exists(UPLOAD_DIR): os.makedirs(UPLOAD_DIR)
         files = [f for f in os.listdir(UPLOAD_DIR) if f.endswith('.pdf')]
         
-        if not files:
-            print("[DB] Nessun file PDF trovato.")
-            return 0
+        if not files: return 0
 
         all_docs = []
         for f in files:
@@ -74,15 +75,11 @@ class AIEngine:
 
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
         splits = text_splitter.split_documents(all_docs)
-        
-        # Embeddings
         embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
         
-        # CREAZIONE FAISS
-        print("[DB] Creazione indice FAISS...")
         try:
             vector_db = FAISS.from_documents(splits, embeddings)
-            vector_db.save_local(DB_DIR) # Salvataggio su disco
+            vector_db.save_local(DB_DIR)
             print(f"[DB] Database ricostruito con {len(files)} file.")
             return len(files)
         except Exception as e:
@@ -90,31 +87,121 @@ class AIEngine:
             return 0
 
     def get_vector_db(self):
-        """Helper per caricare il DB se esiste"""
         embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
         if os.path.exists(DB_DIR):
             try:
-                # allow_dangerous_deserialization è necessario per file locali fidati
                 return FAISS.load_local(DB_DIR, embeddings, allow_dangerous_deserialization=True)
-            except Exception as e:
-                print(f"[DB Load Error] {e}")
-                return None
+            except: return None
         return None
 
+    # --- 2. CHAT CON DOCUMENTI (RAG) ---
     def get_chat_response(self, question: str):
         vector_db = self.get_vector_db()
-        if not vector_db: return "Nessuna conoscenza caricata. Carica un PDF prima."
+        if not vector_db: return "Carica un PDF per iniziare a chattare."
         
         retriever = vector_db.as_retriever(search_kwargs={'k': 4})
-        
-        prompt = ChatPromptTemplate.from_template(
-            "Sei un assistente di studio. Usa SOLO il seguente contesto per rispondere.\n<context>{context}</context>\nDomanda: {input}"
-        )
-        
-        chain = create_retrieval_chain(retriever, create_stuff_documents_chain(self.llm, prompt))
-        res = chain.invoke({"input": question})
-        return res["answer"]
+        docs = retriever.invoke(question)
+        context_text = "\n\n".join([d.page_content for d in docs])
 
+        prompt = ChatPromptTemplate.from_template("""
+        Sei un assistente di studio esperto. Rispondi alla domanda basandoti SOLO sul contesto fornito.
+        Se la risposta non è nel contesto, dillo chiaramente.
+        
+        CONTESTO:
+        {context}
+        
+        DOMANDA: {input}
+        """)
+        
+        chain = prompt | self.llm | StrOutputParser()
+        return chain.invoke({"context": context_text, "input": question})
+
+    # --- 3. VALUTAZIONE RISPOSTE (GRADING) ---
+    def grade_answer(self, question: str, correct_answer: str, user_answer: str, lang: str):
+        prompt_text = """
+        Sei un professore universitario. Valuta la risposta dello studente.
+        
+        DOMANDA: {q}
+        RIFERIMENTO CORRETTO: {ref}
+        RISPOSTA STUDENTE: {user}
+        
+        Compito:
+        1. Assegna un voto da 0 a 100.
+        2. "feedback": Scrivi un commento critico sull'errore o sulla correttezza.
+        3. "ideal_answer": Scrivi la versione perfetta e sintetica della risposta corretta.
+        
+        Rispondi ESCLUSIVAMENTE con questo formato JSON:
+        {{
+            "score": 85,
+            "feedback": "Il concetto è giusto ma manca...",
+            "ideal_answer": "La definizione formale corretta è..."
+        }}
+        """
+        prompt = ChatPromptTemplate.from_template(prompt_text)
+        chain = prompt | self.llm | StrOutputParser()
+        
+        try:
+            res = chain.invoke({
+                "q": question, "ref": correct_answer, "user": user_answer, "lang": lang
+            })
+            return json.loads(clean_json_output(res))
+        except Exception as e:
+            print(f"[Grade Error] {e}")
+            # Fallback in caso di errore
+            return {
+                "score": 0, 
+                "feedback": "Errore durante la valutazione.", 
+                "ideal_answer": correct_answer
+            }
+
+    # --- 4. RIGENERAZIONE DOMANDA ---
+    # --- AGGIUNGI QUESTO METODO ALLA CLASSE AIEngine ---
+    def regenerate_question(self, original_text: str, instruction: str, lang: str):
+        prompt_template = """
+        Sei un esaminatore esperto. Modifica la domanda seguendo l'istruzione.
+        
+        DOMANDA ORIGINALE: {q}
+        ISTRUZIONE UTENTE: {instr}
+        LINGUA OUTPUT: {lang}
+        
+        Rispondi SOLO con un JSON valido:
+        {{
+            "domanda": "Nuovo testo...",
+            "tipo": "multipla" (o "aperta"),
+            "opzioni": ["A)...", "B)..."], (se multipla)
+            "corretta": "...",
+            "source_file": "AI Regenerated"
+        }}
+        """
+        
+        try:
+            prompt = ChatPromptTemplate.from_template(prompt_template)
+            chain = prompt | self.llm | StrOutputParser()
+            
+            response = chain.invoke({
+                "q": original_text,
+                "instr": instruction,
+                "lang": lang
+            })
+            
+            clean_json = clean_json_output(response)
+            data = json.loads(clean_json)
+            
+            # Mappiamo i dati per il frontend
+            return {
+                "questionText": data.get("domanda", ""),
+                "type": data.get("tipo", "aperta"),
+                "options": data.get("opzioni", []) if data.get("tipo") == "multipla" else [],
+                "correctAnswer": data.get("corretta", ""),
+                "sourceFile": "AI Regenerated",
+                "isLocked": False  # Sblocchiamo la domanda così puoi rispondere di nuovo
+            }
+            
+        except Exception as e:
+            print(f"[Regen Error] {e}")
+            return None
+        
+    # --- 5. GENERAZIONE QUIZ ---
     def generate_quiz_task(self, job_id: str, request: QuizRequest):
         try:
             self.jobs[job_id]["status"] = "processing"

@@ -78,25 +78,16 @@ class QuizQuestion {
     };
   }
 
-  // --- PUNTO CRITICO: Mapping chiavi Italiane/Inglesi ---
-  factory QuizQuestion.fromJson(Map<String, dynamic> json) {
+factory QuizQuestion.fromJson(Map<String, dynamic> json) {
     return QuizQuestion(
-      // Cerca 'questionText', se non c'è prova 'domanda', altrimenti vuoto
+
       questionText: json['questionText'] ?? json['domanda'] ?? "",
-      
-      type: json['type'] ?? "multipla",
-      
-      // Cerca 'options', se non c'è prova 'opzioni'
+      type: json['type'] ?? json['tipo'] ?? "multipla",
       options: json['options'] != null 
           ? List<String>.from(json['options']) 
           : (json['opzioni'] != null ? List<String>.from(json['opzioni']) : []),
-      
-      // Cerca 'correctAnswer', se non c'è prova 'corretta'
       correctAnswer: json['correctAnswer'] ?? json['corretta'] ?? "",
-      
-      // Cerca 'sourceFile', se non c'è prova 'source_file' (formato Python)
       sourceFile: json['sourceFile'] ?? json['source_file'] ?? "Unknown",
-      
       userAnswer: json['userAnswer'],
       isLocked: json['isLocked'] ?? false,
       aiScore: json['aiScore'],

@@ -93,7 +93,7 @@ class _StudyScreenState extends State<StudyScreen> {
     }
   }
 
-  // --- AZIONI SULLE DOMANDE ---
+// --- AZIONI SULLE DOMANDE ---
   void _submitAnswer(String answer) async {
     if (_filteredQuestions.isEmpty) return;
     QuizQuestion q = _filteredQuestions[_currentQuestionIndex];
@@ -109,15 +109,25 @@ class _StudyScreenState extends State<StudyScreen> {
       bool isCorrect = answer.startsWith(q.correctAnswer.split(')')[0]);
       setState(() {
         q.aiScore = isCorrect ? 100 : 0;
-        q.aiFeedback = isCorrect ? "Correct!" : "Wrong. Correct answer: ${q.correctAnswer}";
+        // Per le multiple non usiamo lo split, è testo semplice
+        q.aiFeedback = isCorrect ? "Correct Answer!" : "Wrong. Correct answer: ${q.correctAnswer}";
       });
     } else {
+      // --- LOGICA DOMANDE APERTE MODIFICATA ---
       final locale = Localizations.localeOf(context).languageCode;
+      
+      // Chiamata API
       final grading = await ApiService.gradeAnswer(q.questionText, q.correctAnswer, answer, locale);
+      
       if (mounted) {
         setState(() {
           q.aiScore = grading['score'];
-          q.aiFeedback = grading['feedback'];
+          
+          // SALVIAMO I DUE PEZZI UNITI DA UN SEPARATORE "###SPLIT###"
+          String feedbackPart = grading['feedback'] ?? "No feedback";
+          String idealPart = grading['ideal_answer'] ?? q.correctAnswer;
+          
+          q.aiFeedback = "$feedbackPart###SPLIT###$idealPart";
         });
       }
     }

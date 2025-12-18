@@ -59,6 +59,18 @@ class QuizCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textController = TextEditingController(text: question.userAnswer ?? "");
+    
+    // Parsiamo il feedback per vedere se è il nuovo formato con "###SPLIT###"
+    String feedbackPart = question.aiFeedback ?? "";
+    String? idealPart;
+    
+    if (question.type != "multipla" && feedbackPart.contains("###SPLIT###")) {
+      final parts = feedbackPart.split("###SPLIT###");
+      feedbackPart = parts[0];
+      if (parts.length > 1) idealPart = parts[1];
+    }
+
     return Center(
       child: Container(
         width: 800,
@@ -75,15 +87,13 @@ class QuizCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // --- HEADER CARD ---
+              // --- HEADER ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // GRUPPO SINISTRA (Tipo + File)
                   Expanded(
                     child: Row(
                       children: [
-                        // Tipo Label
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(color: kVividGreen.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
@@ -93,8 +103,6 @@ class QuizCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        
-                        // Source File Label
                         Flexible(
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -119,16 +127,10 @@ class QuizCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
-                  const SizedBox(width: 10), 
-
-                  // GRUPPO DESTRA (Azioni)
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // BACCHETTA MAGICA
                       IconButton(icon: const Icon(CupertinoIcons.wand_stars, size: 25, color: kVividGreen), onPressed: () => _showEditDialog(context)),
-                      // ICONLY DELETE
                       IconButton(icon: const Icon(IconlyLight.delete, size: 25, color: Colors.redAccent), onPressed: onDelete),
                     ],
                   )
@@ -145,7 +147,7 @@ class QuizCard extends StatelessWidget {
               
               const SizedBox(height: 40),
 
-              // --- RISPOSTE ---
+              // --- RISPOSTA MULTIPLA ---
               if (question.type == "multipla")
                 ...question.options.map((opt) {
                   bool isSelected = question.userAnswer == opt;
@@ -201,20 +203,34 @@ class QuizCard extends StatelessWidget {
                   );
                 })
               else
-                TextField(
-                  enabled: !question.isLocked,
-                  style: GoogleFonts.poppins(color: Colors.white),
-                  onSubmitted: onSubmit,
-                  decoration: InputDecoration(
-                    hintText: "Type your answer here...",
-                    hintStyle: TextStyle(color: Colors.grey[600]),
-                    filled: true, fillColor: const Color(0xFF252525),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                    suffixIcon: const Icon(Icons.send, color: kVividGreen),
-                  ),
+                // --- RISPOSTA APERTA ---
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: textController,
+                      enabled: !question.isLocked,
+                      style: GoogleFonts.poppins(color: Colors.white),
+                      onSubmitted: onSubmit,
+                      minLines: 1,
+                      maxLines: 8,
+                      decoration: InputDecoration(
+                        hintText: "Type your answer here...",
+                        hintStyle: TextStyle(color: Colors.grey[600]),
+                        filled: true, fillColor: const Color(0xFF252525),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                        suffixIcon: !question.isLocked 
+                          ? IconButton(
+                              icon: const Icon(Icons.send, color: kVividGreen),
+                              onPressed: () => onSubmit(textController.text),
+                            )
+                          : null,
+                      ),
+                    ),
+                  ],
                 ),
 
-              // --- FEEDBACK AI ---
+              // --- FEEDBACK AI UNIFICATO (SOLO SE BLOCCATO) ---
               if (question.isLocked && question.aiFeedback != null)
                 Container(
                   width: double.infinity,
@@ -230,16 +246,35 @@ class QuizCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Header Punteggio
                       Row(
                         children: [
-                          Icon((question.aiScore ?? 0) >= 60 ? Icons.check : Icons.warning, 
-                            color: (question.aiScore ?? 0) >= 60 ? kVividGreen : Colors.redAccent, size: 18),
-                          const SizedBox(width: 8),
-                          Text("AI Feedback", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white70)),
+                          Icon((question.aiScore ?? 0) >= 60 ? Icons.check_circle : Icons.warning_amber_rounded, 
+                            color: (question.aiScore ?? 0) >= 60 ? kVividGreen : Colors.redAccent, size: 24),
+                          const SizedBox(width: 10),
+                          Text("AI Evaluation: ${question.aiScore}/100", 
+                            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      Text(question.aiFeedback!, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
+                      
+                      const SizedBox(height: 15),
+                      const Divider(color: Colors.white12),
+                      const SizedBox(height: 15),
+
+                      // SEZIONE 1: COMMENTI
+                      Text("FEEDBACK", style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+                      const SizedBox(height: 5),
+                      Text(feedbackPart, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, height: 1.5)),
+
+                      // SEZIONE 2: RISPOSTA IDEALE (Se disponibile)
+                      if (idealPart != null) ...[
+                        const SizedBox(height: 20),
+                        Container(height: 1, color: Colors.white10), // Divisore interno
+                        const SizedBox(height: 15),
+                        Text("IDEAL ANSWER", style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: kVividGreen, letterSpacing: 1.2)),
+                        const SizedBox(height: 5),
+                        Text(idealPart, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14, fontStyle: FontStyle.italic, height: 1.5)),
+                      ]
                     ],
                   ),
                 )
@@ -250,7 +285,6 @@ class QuizCard extends StatelessWidget {
     );
   }
 }
-
 // --- 2. CHAT PANEL ---
 class ChatPanel extends StatelessWidget {
   final VoidCallback onClose;

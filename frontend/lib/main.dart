@@ -3,6 +3,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:quiz_generator_pro/l10n/app_localizations.dart';
 import 'screens/home_screen.dart';
 
+//********************* */ START SERVER COMMAND */***************************//
+//*             uvicorn src.main:app --reload --port 8001                   *//  
+//*********************   END SERVER COMMAND  *******************************//
+
 void main() {
   runApp(const QuizApp());
 }
