@@ -21,6 +21,7 @@ frontend/.idea/
 frontend/windows/flutter/ephemeral/
 
 # --- SISTEMA & IDE ---
+QuizGeneratorProSetup_v1.exe
 .DS_Store
 .vscode/
 .idea/
