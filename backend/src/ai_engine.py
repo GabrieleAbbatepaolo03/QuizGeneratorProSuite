@@ -338,32 +338,52 @@ class AIEngine:
                     valid_batch = []
                     for q in new_qs:
                         q_text = q.get('domanda', '').strip()
+                        # Normalize type to lowercase for comparison
                         q_type = q.get('tipo', 'multipla').lower()
                         
-                        # --- FILTRO SICUREZZA ---
+                        # --- STRICT FILTERING SAFETY ---
+                        # If user asked ONLY for OPEN questions, discard any MULTIPLE choice ones
                         if request.question_type == "open" and q_type != "aperta":
                             continue
+                        # If user asked ONLY for MULTIPLE choice questions, discard any OPEN ones
                         if request.question_type == "multiple" and q_type != "multipla":
                             continue
                         
-                        # --- FIX OPZIONI ---
+                        # --- FIX OPTIONS & TYPE CORRECTION ---
                         if q_type == 'multipla':
                             opts = q.get('opzioni', [])
+                            # If multiple choice but NO options are provided
                             if not opts:
+                                # If strict multiple choice was requested, this question is broken -> skip it
                                 if request.question_type == "multiple":
                                     continue 
                                 else:
+                                    # Otherwise, convert it to an open question as a fallback
                                     q['tipo'] = 'aperta'
                                     q_type = 'aperta'
                             elif len(opts) > request.max_options:
+                                # Trim options if there are too many
                                 q['opzioni'] = opts[:request.max_options]
                         else:
+                            # If it's an open question, ensure no options list exists
                             q.pop("opzioni", None)
 
+                        # --- FIX CORRECT ANSWER NORMALIZATION ---
+                        if q_type == 'multipla' and 'corretta' in q and 'opzioni' in q:
+                            correct_txt = q['corretta']
+                            # If the correct answer doesn't start with a prefix like "A) ", try to match it within options
+                            if not any(correct_txt.startswith(x) for x in ["A)", "B)", "C)", "D)"]):
+                                for opt in q['opzioni']:
+                                    if correct_txt.lower() in opt.lower():
+                                        q['corretta'] = opt # Overwrite with the full option string (e.g. "A) Text")
+                                        break
+
+                        # Source file fallback
                         s_file = q.get('source_file', '').strip()
                         if not s_file or s_file.lower() == "unknown":
                             q['source_file'] = fallback_source
                         
+                        # Deduplication check
                         if q_text and q_text not in generated_hashes:
                             valid_batch.append(q)
                             generated_hashes.append(q_text)
@@ -374,11 +394,13 @@ class AIEngine:
                         attempts_fail = 0
                         self.jobs[job_id]["progress"] = len(all_questions)
                     else:
+                        # If batch yielded no valid questions, restore counts and retry
                         if batch_open_count > 0: remaining_open += batch_open_count 
                         attempts_fail += 1
                         
                 except Exception as e:
                     print(f"[WARN] Batch issue in job {job_id}: {e}")
+                    # On error, restore counts to try generating these questions again
                     if batch_open_count > 0: remaining_open += batch_open_count 
                     attempts_fail += 1
 

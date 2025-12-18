@@ -123,6 +123,14 @@ class _StudyScreenState extends State<StudyScreen> {
     }
   }
 
+  // --- LOGICA DI CONFRONTO ROBUSTA ---
+  bool _isAnswerMatching(String option, String correctAnswer) {
+    final RegExp prefixRegex = RegExp(r'^([a-zA-Z0-9]+[\.\)])\s*');
+    String cleanOption = option.replaceAll(prefixRegex, '').trim().toLowerCase();
+    String cleanCorrect = correctAnswer.replaceAll(prefixRegex, '').trim().toLowerCase();
+    return cleanOption == cleanCorrect || option.trim().toLowerCase() == correctAnswer.trim().toLowerCase();
+  }
+
   void _submitAnswer(String answer) async {
     if (_filteredQuestions.isEmpty) return;
     QuizQuestion q = _filteredQuestions[_currentQuestionIndex];
@@ -136,7 +144,8 @@ class _StudyScreenState extends State<StudyScreen> {
     });
 
     if (q.type == "multipla") {
-      bool isCorrect = answer.startsWith(q.correctAnswer.split(')')[0]);
+      bool isCorrect = _isAnswerMatching(answer, q.correctAnswer);
+      
       setState(() {
         q.aiScore = isCorrect ? 100 : 0;
         q.aiFeedback = isCorrect ? "Correct Answer!" : "Wrong. Correct answer: ${q.correctAnswer}";
@@ -174,13 +183,36 @@ class _StudyScreenState extends State<StudyScreen> {
     }
   }
 
-  void _showCompletionDialog() {
-    final l10n = AppLocalizations.of(context)!;
-    int total = _filteredQuestions.length;
-    int correct = _filteredQuestions.where((q) => (q.aiScore ?? 0) >= 60).length;
-    int score = total > 0 ? ((correct / total) * 100).round() : 0;
+  // --- LOGICA COLORE PALLINO ---
+  Color _getDotColor(QuizQuestion q, bool isActive) {
+    if (!q.isLocked) {
+      // Non risposta: Grigio se inattivo, Bianco/Verde se attivo
+      return isActive ? Colors.white : Colors.grey[800]!;
+    }
+    
+    // Risposta data: Controlla se corretta
+    bool isCorrect = false;
+    if (q.type == "multipla") {
+      isCorrect = _isAnswerMatching(q.userAnswer ?? "", q.correctAnswer);
+    } else {
+      // Per le aperte consideriamo "corretto" se score >= 60 (o logica custom)
+      isCorrect = (q.aiScore ?? 0) >= 60;
+    }
 
-    showGeneralDialog(
+    return isCorrect ? kVividGreen : Colors.redAccent;
+  }
+
+  // ... (Dialog Completion, Restart, ecc. invariati) ...
+  void _showCompletionDialog() {
+      // ... (Usa il codice esistente per il dialog) ...
+      // Per brevità non lo ricopio tutto qui se non è cambiato
+      // Ma assicurati che _showCompletionDialog sia presente nel file finale
+      final l10n = AppLocalizations.of(context)!;
+      int total = _filteredQuestions.length;
+      int correct = _filteredQuestions.where((q) => (q.aiScore ?? 0) >= 60).length;
+      int score = total > 0 ? ((correct / total) * 100).round() : 0;
+      // ... (resto del dialog) ...
+      showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: "Results",
@@ -346,7 +378,7 @@ class _StudyScreenState extends State<StudyScreen> {
     });
     _saveSessionState();
   }
-
+  
   void _renameTitle() {
     final l10n = AppLocalizations.of(context)!;
     TextEditingController ctrl = TextEditingController(text: _topicTitle);
@@ -424,6 +456,7 @@ class _StudyScreenState extends State<StudyScreen> {
           Expanded(
             child: Column(
               children: [
+                // ... (AppBar e Header invariati) ...
                 Container(
                   padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10, bottom: 10, left: 20, right: 20),
                   color: kBgColor,
@@ -521,6 +554,7 @@ class _StudyScreenState extends State<StudyScreen> {
                         },
                       ),
                 ),
+                
                 if (_filteredQuestions.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
@@ -537,12 +571,15 @@ class _StudyScreenState extends State<StudyScreen> {
                           style: TextButton.styleFrom(foregroundColor: Colors.white, disabledForegroundColor: Colors.white12),
                         ),
 
+                        // --- PAGINAZIONE / PALLINI ---
                         Expanded(
                           child: LayoutBuilder(
                             builder: (context, constraints) {
                               final int total = _filteredQuestions.length;
-                              final double requiredWidth = total * 16.0;
+                              // Stima: ogni pallino occupa circa 20px (12 width + 8 margin)
+                              final double requiredWidth = total * 20.0;
                               
+                              // SE C'È SPAZIO: Mostra i pallini colorati
                               if (requiredWidth <= constraints.maxWidth) {
                                 return Center(
                                   child: SizedBox(
@@ -553,18 +590,25 @@ class _StudyScreenState extends State<StudyScreen> {
                                       itemCount: total,
                                       itemBuilder: (ctx, i) {
                                         bool isActive = i == _currentQuestionIndex;
-                                        Color dotColor = isActive ? kVividGreen : Colors.grey[800]!;
+                                        QuizQuestion q = _filteredQuestions[i];
+                                        
+                                        // Calcolo colore pallino
+                                        Color dotColor = _getDotColor(q, isActive);
                                         
                                         return GestureDetector(
                                           onTap: () => _pageController.animateToPage(i, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
-                                          child: Container(
+                                          child: AnimatedContainer(
+                                            duration: const Duration(milliseconds: 200),
                                             margin: const EdgeInsets.symmetric(horizontal: 4),
                                             width: isActive ? 12 : 8,
                                             height: isActive ? 12 : 8,
                                             decoration: BoxDecoration(
                                               color: dotColor,
                                               shape: BoxShape.circle,
-                                              boxShadow: isActive ? [BoxShadow(color: kVividGreen.withOpacity(0.5), blurRadius: 6)] : null
+                                              // GLOW solo se attivo
+                                              boxShadow: isActive 
+                                                ? [BoxShadow(color: dotColor.withOpacity(0.6), blurRadius: 8, spreadRadius: 1)] 
+                                                : null
                                             ),
                                           ),
                                         );
@@ -573,13 +617,21 @@ class _StudyScreenState extends State<StudyScreen> {
                                   ),
                                 );
                               } else {
+                                // SE NON C'È SPAZIO: Mostra testo "X / Y" con colore dinamico
+                                QuizQuestion currentQ = _filteredQuestions[_currentQuestionIndex];
+                                Color textColor = _getDotColor(currentQ, true);
+                                
                                 return Center(
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(20)),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.05), 
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(color: textColor.withOpacity(0.3))
+                                    ),
                                     child: Text(
                                       "${_currentQuestionIndex + 1} / $total",
-                                      style: GoogleFonts.poppins(color: kVividGreen, fontWeight: FontWeight.bold, fontSize: 14),
+                                      style: GoogleFonts.poppins(color: textColor, fontWeight: FontWeight.bold, fontSize: 14),
                                     ),
                                   ),
                                 );
@@ -602,6 +654,8 @@ class _StudyScreenState extends State<StudyScreen> {
               ],
             ),
           ),
+          
+          // ... (Chat Sidebar invariata) ...
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
