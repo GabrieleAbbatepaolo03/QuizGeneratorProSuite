@@ -146,5 +146,6 @@
   "allTypes": "ሁሉም ዓይነቶች",
   "openType": "ክፍት",
   "multipleChoiceType": "ምርጫ",
-  "allFiles": "ሁሉም ፋይሎች"
+  "allFiles": "ሁሉም ፋይሎች",
+  "uploadToUnlock": "የጥያቄ ማመንጨትን ለመክፈት PDF ይስቀሉ"
 }

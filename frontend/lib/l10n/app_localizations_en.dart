@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get dashboardTitle => 'Study Buddy Dashboard';
+  String get dashboardTitle => 'Quiz Generator Pro';
 
   @override
   String get noFileLoaded => 'No Knowledge Base Loaded';
@@ -337,4 +337,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allFiles => 'All Files';
+
+  @override
+  String get uploadToUnlock => 'Upload a PDF to unlock Quiz Generation';
 }

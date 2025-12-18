@@ -460,6 +460,9 @@ class EmptyStateButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // FIX: Access localized strings
+    final l10n = AppLocalizations.of(context)!;
+    
     return Container(
       height: 80,
       decoration: BoxDecoration(
@@ -473,7 +476,8 @@ class EmptyStateButton extends StatelessWidget {
           children: [
             const Icon(CupertinoIcons.lock_fill, color: Colors.grey),
             const SizedBox(width: 10),
-            Text("Upload a PDF to unlock Quiz Generation", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16)),
+            // FIX: Use localized string instead of hardcoded English
+            Text(l10n.uploadToUnlock, style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16)),
           ],
         ),
       ),

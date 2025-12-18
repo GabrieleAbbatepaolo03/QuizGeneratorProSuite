@@ -9,7 +9,7 @@ class AppLocalizationsAm extends AppLocalizations {
   AppLocalizationsAm([String locale = 'am']) : super(locale);
 
   @override
-  String get dashboardTitle => 'የጥናት አጋር ዳሽቦርድ';
+  String get dashboardTitle => 'Quiz Generator Pro';
 
   @override
   String get noFileLoaded => 'ምንም የእውቀት መሠረት አልተጫነም';
@@ -337,4 +337,7 @@ class AppLocalizationsAm extends AppLocalizations {
 
   @override
   String get allFiles => 'ሁሉም ፋይሎች';
+
+  @override
+  String get uploadToUnlock => 'የጥያቄ ማመንጨትን ለመክፈት PDF ይስቀሉ';
 }

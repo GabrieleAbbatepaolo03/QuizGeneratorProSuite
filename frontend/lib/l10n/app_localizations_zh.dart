@@ -9,7 +9,7 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get dashboardTitle => '学习助手仪表盘';
+  String get dashboardTitle => 'Quiz Generator Pro';
 
   @override
   String get noFileLoaded => '未加载知识库';
@@ -337,4 +337,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get allFiles => '所有文件';
+
+  @override
+  String get uploadToUnlock => '上传 PDF 以解锁测验生成';
 }

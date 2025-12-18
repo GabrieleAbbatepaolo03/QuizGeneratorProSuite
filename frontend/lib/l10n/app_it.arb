@@ -146,5 +146,6 @@
   "allTypes": "Tutti i Tipi",
   "openType": "Aperta",
   "multipleChoiceType": "Scelta Multipla",
-  "allFiles": "Tutti i File"
+  "allFiles": "Tutti i File",
+  "uploadToUnlock": "Carica un PDF per sbloccare la generazione di quiz"
 }

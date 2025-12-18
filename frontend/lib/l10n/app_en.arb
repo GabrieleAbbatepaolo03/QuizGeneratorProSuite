@@ -146,5 +146,6 @@
   "allTypes": "All Types",
   "openType": "Open",
   "multipleChoiceType": "Multiple Choice",
-  "allFiles": "All Files"
+  "allFiles": "All Files",
+  "uploadToUnlock": "Upload a PDF to unlock Quiz Generation"
 }

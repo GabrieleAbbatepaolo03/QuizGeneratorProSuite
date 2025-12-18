@@ -146,5 +146,6 @@
   "allTypes": "所有类型",
   "openType": "开放式",
   "multipleChoiceType": "多项选择",
-  "allFiles": "所有文件"
+  "allFiles": "所有文件",
+  "uploadToUnlock": "上传 PDF 以解锁测验生成"
 }

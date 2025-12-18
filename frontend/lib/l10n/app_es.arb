@@ -146,5 +146,6 @@
   "allTypes": "Todos los Tipos",
   "openType": "Abierta",
   "multipleChoiceType": "Opción Múltiple",
-  "allFiles": "Todos los Archivos"
+  "allFiles": "Todos los Archivos",
+  "uploadToUnlock": "Sube un PDF para desbloquear la generación de cuestionarios"
 }

@@ -104,7 +104,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardTitle.
   ///
   /// In en, this message translates to:
-  /// **'Study Buddy Dashboard'**
+  /// **'Quiz Generator Pro'**
   String get dashboardTitle;
 
   /// No description provided for @noFileLoaded.
@@ -736,6 +736,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All Files'**
   String get allFiles;
+
+  /// No description provided for @uploadToUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a PDF to unlock Quiz Generation'**
+  String get uploadToUnlock;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
