@@ -1,72 +1,156 @@
 {
-"dashboardTitle": "Study Buddy",
-"noFileLoaded": "Nessuna Knowledge Base Caricata",
-"uploadPdf": "Aggiungi Documento PDF",
-"readingPdf": "Lettura PDF in corso...",
-"activeFile": "File Attivo:",
-"chatWithAi": "Chatta con AI",
-"generateQuiz": "Genera Quiz",
-"changeFile": "Gestisci File",
-"pdfUploaded": "PDF Aggiunto al Cervello!",
+  "dashboardTitle": "Study Buddy",
+  "noFileLoaded": "Nessuna Knowledge Base Caricata",
+  "uploadPdf": "Aggiungi Documento PDF",
+  "readingPdf": "Lettura PDF in corso...",
+  "activeFile": "File Attivo:",
+  "chatWithAi": "Chatta con AI",
+  "generateQuiz": "Genera Quiz",
+  "changeFile": "Gestisci File",
+  "pdfUploaded": "PDF Aggiunto al Cervello!",
 
-"settingsTitle": "Impostazioni & Sistema",
-"detectedHardware": "HARDWARE RILEVATO",
-"compatible": "Compatibile con il tuo PC",
-"incompatible": "Hardware insufficiente",
-"active": "Attivo",
-"load": "Carica",
-"missingFile": "File Mancante",
-"language": "Lingua",
-"selectLanguage": "Lingua App",
+  "settingsTitle": "Impostazioni & Sistema",
+  "detectedHardware": "HARDWARE RILEVATO",
+  "compatible": "Compatibile con il tuo PC",
+  "incompatible": "Hardware insufficiente",
+  "active": "Attivo",
+  "load": "Carica",
+  "missingFile": "File Mancante",
+  "language": "Lingua",
+  "selectLanguage": "Lingua App",
 
-"chatTitle": "Chat",
-"chatHint": "Chiedi qualcosa sul documento...",
+  "chatTitle": "Chat",
+  "chatHint": "Chiedi qualcosa sul documento...",
 
-"quizTitle": "Generatore Quiz",
-"configQuiz": "Configura il tuo Quiz",
-"customPromptLabel": "Argomento e Stile",
-"customPromptHint": "Es: Domande difficili sulla Fisica Quantistica, stile accademico...",
-"numberOfQuestions": "Numero di Domande",
-"difficultyLabel": "Livello di Difficoltà",
-"generateBtn": "Genera Quiz",
-"startQuizBtn": "Avvia Quiz",
-"generating": "Generazione in corso...",
-"quizResults": "Risultati Quiz",
-"newQuiz": "Nuovo Quiz",
-"correctAnswer": "Risposta Corretta:",
-"quizHistory": "Cronologia Quiz",
-"noHistory": "Nessun quiz ancora svolto",
-"delete": "Elimina",
-"startSession": "Avvia Sessione di Studio",
-"subStart": "Chat • Quiz • Verifica",
-"aiChat": "Chat AI",
-"newSession": "Nuova Sessione",
-"config": "Configurazione",
-"questions": "Domande",
-"sceltaMultipla": "Scelta Multipla",
-"rispostaAperta": "Risposta Aperta",
-"feedbackAI": "Feedback AI",
-"writeAnswer": "Scrivi la tua risposta qui...",
-"sendAnswer": "Invia Risposta",
-"previous": "Precedente",
-"next": "Successivo",
-"aiAssistant": "Assistente AI",
-"quizCompleted": "Quiz Completato!",
-"retry": "Riprova",
-"generateMore": "Genera Altri",
-"keepOldSession": "Mantenere sessione precedente?",
-"keep": "Mantieni",
-"discard": "Scarta",
+  "quizTitle": "Generatore Quiz",
+  "configQuiz": "Configura il tuo Quiz",
+  "customPromptLabel": "Argomento e Stile",
+  "customPromptHint": "Es: Domande difficili sulla Fisica Quantistica, stile accademico...",
+  "numberOfQuestions": "Numero di Domande",
+  "difficultyLabel": "Livello di Difficoltà",
+  "generateBtn": "Genera Quiz",
+  "startQuizBtn": "Avvia Quiz",
+  "generating": "Generazione in corso...",
+  "quizResults": "Risultati Quiz",
+  "newQuiz": "Nuovo Quiz",
+  "correctAnswer": "Risposta Corretta:",
+  "quizHistory": "Cronologia Quiz",
+  "noHistory": "Nessun quiz ancora svolto",
+  "delete": "Elimina",
+  "startSession": "Avvia Sessione di Studio",
+  "subStart": "Chat • Quiz • Verifica",
+  "aiChat": "Chat AI",
+  "newSession": "Nuova Sessione",
+  "config": "Configurazione",
+  "questions": "Domande",
+  "sceltaMultipla": "Scelta Multipla",
+  "rispostaAperta": "Risposta Aperta",
+  "feedbackAI": "Feedback AI",
+  "writeAnswer": "Scrivi la tua risposta qui...",
+  "sendAnswer": "Invia Risposta",
+  "previous": "Precedente",
+  "next": "Successivo",
+  "aiAssistant": "Assistente AI",
+  "quizCompleted": "Quiz Completato!",
+  "retry": "Riprova",
+  "generateMore": "Genera Altri",
+  "keepOldSession": "Mantenere sessione precedente?",
+  "keep": "Mantieni",
+  "discard": "Scarta",
 
-"quizTypeMixed": "Misto (Aperta + Multipla)",
-"quizTypeOpen": "Solo Domande Aperte",
-"quizTypeMultiple": "Solo Scelta Multipla",
-"optionsLabel": "Opzioni per domanda",
+  "quizTypeMixed": "Misto (Aperta + Multipla)",
+  "quizTypeOpen": "Solo Domande Aperte",
+  "quizTypeMultiple": "Solo Scelta Multipla",
+  "optionsLabel": "Opzioni per domanda",
 
-"resultsSummary": "Riepilogo Risultati",
-"score": "Punteggio",
-"restartShuffle": "Riavvia & Mischia",
-"reviewErrors": "Ripeti Errori",
-"backToHome": "Torna alla Home",
-"restartQuiz": "Ricomincia" 
+  "resultsSummary": "Riepilogo Risultati",
+  "score": "Punteggio",
+  "restartShuffle": "Riavvia & Mischia",
+  "reviewErrors": "Ripeti Errori",
+  "backToHome": "Torna alla Home",
+  "restartQuiz": "Ricomincia",
+
+  "errorFileExists": "Errore: '{fileName}' esiste già nella libreria.",
+  "@errorFileExists": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "errorUploadFailed": "Caricamento fallito per {fileName}",
+  "@errorUploadFailed": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "errorSelectFile": "Seleziona almeno un file dall'Archivio.",
+  "errorLoadContext": "Impossibile caricare il contesto. Controlla la connessione al backend.",
+  "errorStartGeneration": "Impossibile avviare la generazione",
+  "successExport": "Quiz esportato con successo!",
+  "errorExport": "Esportazione fallita: {error}",
+  "@errorExport": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "successImport": "Quiz importato con successo!",
+  "errorImport": "Importazione fallita: {error}",
+  "@errorImport": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameSession": "Rinomina Sessione",
+  "renameQuiz": "Rinomina Quiz",
+  "newName": "Nuovo nome",
+  "save": "Salva",
+  "cancel": "Annulla",
+  "addNewPdf": "Aggiungi Nuovo PDF",
+  "uploading": "Caricamento...",
+  "libraryEmpty": "Libreria vuota",
+  "selectedFiles": "{count} selezionati",
+  "@selectedFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteSelected": "Elimina Selezionati",
+  "importedModeWarning": "⚠️ MODALITÀ IMPORT: File sorgenti non trovati. Chat AI e Valutazione disabilitati.",
+  "aiGradingUnavailable": "⚠️ Valutazione AI non disponibile perché mancano i file sorgenti (Modalità Import).",
+  "aiChatUnavailable": "⚠️ AI non disponibile: Documenti sorgente mancanti. Chat disabilitata per questa sessione importata.",
+  "aiRegenUnavailable": "Rigenerazione AI non disponibile in Modalità Import.",
+  "noQuestionsFound": "Nessuna domanda trovata.",
+  "editQuestion": "Modifica Domanda",
+  "updateAi": "Aggiorna AI",
+  "aiEvaluation": "Valutazione AI: {score}/100",
+  "@aiEvaluation": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "aiUnavailable": "AI Non Disponibile",
+  "feedbackLabel": "FEEDBACK",
+  "idealAnswerLabel": "RISPOSTA IDEALE",
+  "systemSpecs": "Specifiche Sistema",
+  "backendApi": "API Backend",
+  "hardware": "HARDWARE",
+  "aiModels": "MODELLI AI",
+  "close": "Chiudi",
+  "aiModelLabel": "Modello AI",
+  "typeLabel": "Tipo",
+  "allTypes": "Tutti i Tipi",
+  "openType": "Aperta",
+  "multipleChoiceType": "Scelta Multipla",
+  "allFiles": "Tutti i File"
 }

@@ -161,4 +161,18 @@ class ApiService {
     }
     return {"score": 0, "feedback": "Errore di connessione."};
   }
+
+  static Future<bool> loadContext(List<String> filenames) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/system/load-context'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"filenames": filenames}),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Load Context Error: $e");
+      return false;
+    }
+  }
 }

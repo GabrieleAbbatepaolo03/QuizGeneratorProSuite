@@ -1,72 +1,156 @@
 {
-"dashboardTitle": "Study Buddy Dashboard",
-"noFileLoaded": "No Knowledge Base Loaded",
-"uploadPdf": "Add PDF Document",
-"readingPdf": "Reading PDF...",
-"activeFile": "Knowledge Base:",
-"chatWithAi": "Chat w/ AI",
-"generateQuiz": "Generate Quiz",
-"changeFile": "Manage Files",
-"pdfUploaded": "PDF Added to Brain!",
+  "dashboardTitle": "Study Buddy Dashboard",
+  "noFileLoaded": "No Knowledge Base Loaded",
+  "uploadPdf": "Add PDF Document",
+  "readingPdf": "Reading PDF...",
+  "activeFile": "Knowledge Base:",
+  "chatWithAi": "Chat w/ AI",
+  "generateQuiz": "Generate Quiz",
+  "changeFile": "Manage Files",
+  "pdfUploaded": "PDF Added to Brain!",
 
-"settingsTitle": "System & Settings",
-"detectedHardware": "DETECTED HARDWARE",
-"compatible": "Compatible with your PC",
-"incompatible": "Hardware insufficient",
-"active": "Active",
-"load": "Load",
-"missingFile": "Missing File",
-"language": "Language",
-"selectLanguage": "App Language",
+  "settingsTitle": "System & Settings",
+  "detectedHardware": "DETECTED HARDWARE",
+  "compatible": "Compatible with your PC",
+  "incompatible": "Hardware insufficient",
+  "active": "Active",
+  "load": "Load",
+  "missingFile": "Missing File",
+  "language": "Language",
+  "selectLanguage": "App Language",
 
-"chatTitle": "Chat",
-"chatHint": "Ask about your document...",
+  "chatTitle": "Chat",
+  "chatHint": "Ask about your document...",
 
-"quizTitle": "Quiz Generator",
-"configQuiz": "Configure your Quiz",
-"customPromptLabel": "Quiz Focus & Style",
-"customPromptHint": "Ex: Hard questions about Quantum Physics, academic style...",
-"numberOfQuestions": "Number of Questions",
-"difficultyLabel": "Difficulty Level",
-"generateBtn": "Generate Quiz",
-"startQuizBtn": "Start Quiz",
-"generating": "Generating...",
-"quizResults": "Quiz Results",
-"newQuiz": "New Quiz",
-"correctAnswer": "Answer:",
-"quizHistory": "Quiz History",
-"noHistory": "No quizzes taken yet",
-"delete": "Delete",
-"startSession": "Start Study Session",
-"subStart": "Chat • Quiz • Verify",
-"aiChat": "AI Chat",
-"newSession": "New Session",
-"config": "Configuration",
-"questions": "Questions",
-"sceltaMultipla": "Multiple Choice",
-"rispostaAperta": "Open Answer",
-"feedbackAI": "AI Feedback",
-"writeAnswer": "Type your answer here...",
-"sendAnswer": "Submit Answer",
-"previous": "Previous",
-"next": "Next",
-"aiAssistant": "AI Assistant",
-"quizCompleted": "Quiz Completed!",
-"retry": "Retry",
-"generateMore": "Generate More",
-"keepOldSession": "Keep previous session?",
-"keep": "Keep",
-"discard": "Discard",
+  "quizTitle": "Quiz Generator",
+  "configQuiz": "Configure your Quiz",
+  "customPromptLabel": "Quiz Focus & Style",
+  "customPromptHint": "Ex: Hard questions about Quantum Physics, academic style...",
+  "numberOfQuestions": "Number of Questions",
+  "difficultyLabel": "Difficulty Level",
+  "generateBtn": "Generate Quiz",
+  "startQuizBtn": "Start Quiz",
+  "generating": "Generating...",
+  "quizResults": "Quiz Results",
+  "newQuiz": "New Quiz",
+  "correctAnswer": "Answer:",
+  "quizHistory": "Quiz History",
+  "noHistory": "No quizzes taken yet",
+  "delete": "Delete",
+  "startSession": "Start Study Session",
+  "subStart": "Chat • Quiz • Verify",
+  "aiChat": "AI Chat",
+  "newSession": "New Session",
+  "config": "Configuration",
+  "questions": "Questions",
+  "sceltaMultipla": "Multiple Choice",
+  "rispostaAperta": "Open Answer",
+  "feedbackAI": "AI Feedback",
+  "writeAnswer": "Type your answer here...",
+  "sendAnswer": "Submit Answer",
+  "previous": "Previous",
+  "next": "Next",
+  "aiAssistant": "AI Assistant",
+  "quizCompleted": "Quiz Completed!",
+  "retry": "Retry",
+  "generateMore": "Generate More",
+  "keepOldSession": "Keep previous session?",
+  "keep": "Keep",
+  "discard": "Discard",
 
-"quizTypeMixed": "Mixed (Open + MC)",
-"quizTypeOpen": "Open Questions Only",
-"quizTypeMultiple": "Multiple Choice Only",
-"optionsLabel": "Options per question",
+  "quizTypeMixed": "Mixed (Open + MC)",
+  "quizTypeOpen": "Open Questions Only",
+  "quizTypeMultiple": "Multiple Choice Only",
+  "optionsLabel": "Options per question",
 
-"resultsSummary": "Results Summary",
-"score": "Score",
-"restartShuffle": "Restart & Shuffle",
-"reviewErrors": "Retry Errors",
-"backToHome": "Back to Home",
-"restartQuiz": "Restart"
+  "resultsSummary": "Results Summary",
+  "score": "Score",
+  "restartShuffle": "Restart & Shuffle",
+  "reviewErrors": "Retry Errors",
+  "backToHome": "Back to Home",
+  "restartQuiz": "Restart",
+
+  "errorFileExists": "Error: '{fileName}' already exists in library.",
+  "@errorFileExists": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "errorUploadFailed": "Upload failed for {fileName}",
+  "@errorUploadFailed": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "errorSelectFile": "Please select at least one file from the Archive.",
+  "errorLoadContext": "Failed to load context. Please check backend connection.",
+  "errorStartGeneration": "Failed to start generation job",
+  "successExport": "Quiz Exported Successfully!",
+  "errorExport": "Export Failed: {error}",
+  "@errorExport": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "successImport": "Quiz Imported Successfully!",
+  "errorImport": "Import Failed: {error}",
+  "@errorImport": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "renameSession": "Rename Session",
+  "renameQuiz": "Rename Quiz",
+  "newName": "New name",
+  "save": "Save",
+  "cancel": "Cancel",
+  "addNewPdf": "Add New PDF",
+  "uploading": "Uploading...",
+  "libraryEmpty": "Library is empty",
+  "selectedFiles": "{count} selected",
+  "@selectedFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteSelected": "Delete Selected",
+  "importedModeWarning": "⚠️ IMPORTED MODE: Source files not found. AI Chat and Grading are disabled.",
+  "aiGradingUnavailable": "⚠️ AI Grading is unavailable because source files are missing (Imported Mode).",
+  "aiChatUnavailable": "⚠️ AI Unavailable: Source documents are missing. Chat is disabled for this imported session.",
+  "aiRegenUnavailable": "AI Regeneration unavailable in Imported Mode.",
+  "noQuestionsFound": "No questions found.",
+  "editQuestion": "Edit Question",
+  "updateAi": "Update AI",
+  "aiEvaluation": "AI Evaluation: {score}/100",
+  "@aiEvaluation": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "aiUnavailable": "AI Unavailable",
+  "feedbackLabel": "FEEDBACK",
+  "idealAnswerLabel": "IDEAL ANSWER",
+  "systemSpecs": "System Specs",
+  "backendApi": "Backend API",
+  "hardware": "HARDWARE",
+  "aiModels": "AI MODELS",
+  "close": "Close",
+  "aiModelLabel": "AI Model",
+  "typeLabel": "Type",
+  "allTypes": "All Types",
+  "openType": "Open",
+  "multipleChoiceType": "Multiple Choice",
+  "allFiles": "All Files"
 }

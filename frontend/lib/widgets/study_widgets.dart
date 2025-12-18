@@ -61,7 +61,7 @@ class QuizCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textController = TextEditingController(text: question.userAnswer ?? "");
     
-    // Parsiamo il feedback per vedere se è il nuovo formato con "###SPLIT###"
+    // Parsing Feedback
     String feedbackPart = question.aiFeedback ?? "";
     String? idealPart;
     
@@ -139,7 +139,6 @@ class QuizCard extends StatelessWidget {
               
               const SizedBox(height: 30),
               
-              // --- DOMANDA ---
               Text(
                 question.questionText,
                 style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.white, height: 1.4),
@@ -156,24 +155,20 @@ class QuizCard extends StatelessWidget {
                   Color tileColor = const Color(0xFF252525);
                   Color textColor = Colors.white;
                   IconData icon = Icons.circle_outlined;
-                  Color iconColor = Colors.grey[700]!;
                   
                   if (isSelected) {
                     tileColor = kVividGreen.withOpacity(0.2);
                     textColor = kVividGreen;
                     icon = Icons.check_circle;
-                    iconColor = kVividGreen;
                   }
                   if (isCorrect) {
                     tileColor = Colors.green.withOpacity(0.2);
                     textColor = Colors.green;
                     icon = Icons.check_circle;
-                    iconColor = Colors.green;
                   } else if (question.isLocked && isSelected && !isCorrect) {
                     tileColor = Colors.red.withOpacity(0.2);
                     textColor = Colors.red;
                     icon = Icons.cancel;
-                    iconColor = Colors.red;
                   }
 
                   return Padding(
@@ -193,7 +188,7 @@ class QuizCard extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            Icon(icon, color: iconColor, size: 20),
+                            Icon(icon, color: textColor, size: 20),
                             const SizedBox(width: 15),
                             Expanded(child: Text(opt, style: GoogleFonts.poppins(color: textColor, fontSize: 16))),
                           ],
@@ -230,53 +225,72 @@ class QuizCard extends StatelessWidget {
                   ],
                 ),
 
-              // --- FEEDBACK AI UNIFICATO (SOLO SE BLOCCATO) ---
+              // --- FEEDBACK CONTAINER ---
               if (question.isLocked && question.aiFeedback != null)
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(top: 30),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: (question.aiScore ?? 0) >= 60 ? kVividGreen.withOpacity(0.1) : Colors.redAccent.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: (question.aiScore ?? 0) >= 60 ? kVividGreen.withOpacity(0.3) : Colors.redAccent.withOpacity(0.3)
-                    )
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Punteggio
-                      Row(
+                Builder(
+                  builder: (context) {
+                    // RILEVIAMO SE È UN WARNING (Import Mode)
+                    bool isWarning = feedbackPart.contains("⚠️");
+                    
+                    Color boxColor = isWarning 
+                        ? Colors.amber.withOpacity(0.1) // Giallo
+                        : (question.aiScore ?? 0) >= 60 ? kVividGreen.withOpacity(0.1) : Colors.redAccent.withOpacity(0.1);
+                    
+                    Color borderColor = isWarning 
+                        ? Colors.amber.withOpacity(0.5)
+                        : (question.aiScore ?? 0) >= 60 ? kVividGreen.withOpacity(0.3) : Colors.redAccent.withOpacity(0.3);
+
+                    Color iconColor = isWarning 
+                        ? Colors.amber
+                        : (question.aiScore ?? 0) >= 60 ? kVividGreen : Colors.redAccent;
+                        
+                    IconData iconData = isWarning
+                        ? Icons.warning_amber_rounded
+                        : (question.aiScore ?? 0) >= 60 ? Icons.check_circle : Icons.warning_amber_rounded;
+
+                    return Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(top: 30),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: boxColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: borderColor)
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon((question.aiScore ?? 0) >= 60 ? Icons.check_circle : Icons.warning_amber_rounded, 
-                            color: (question.aiScore ?? 0) >= 60 ? kVividGreen : Colors.redAccent, size: 24),
-                          const SizedBox(width: 10),
-                          Text("AI Evaluation: ${question.aiScore}/100", 
-                            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                          // Header
+                          Row(
+                            children: [
+                              Icon(iconData, color: iconColor, size: 24),
+                              const SizedBox(width: 10),
+                              Text(
+                                isWarning ? "AI Unavailable" : "AI Evaluation: ${question.aiScore}/100", 
+                                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)
+                              ),
+                            ],
+                          ),
+                          
+                          const SizedBox(height: 15),
+                          
+                          // FEEDBACK TEXT
+                          Text(feedbackPart, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, height: 1.5)),
+
+                          // FIX: Mostriamo Ideal Answer ANCHE se è un warning, così l'utente può autovalutarsi
+                          if (idealPart != null) ...[
+                             const SizedBox(height: 15),
+                             const Divider(color: Colors.white12),
+                             const SizedBox(height: 15),
+                             // Usiamo il colore ambra se siamo in warning per coerenza
+                             Text("IDEAL ANSWER", style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: isWarning ? Colors.amber : kVividGreen, letterSpacing: 1.2)),
+                             const SizedBox(height: 5),
+                             Text(idealPart!, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14, fontStyle: FontStyle.italic, height: 1.5)),
+                          ]
                         ],
                       ),
-                      
-                      const SizedBox(height: 15),
-                      const Divider(color: Colors.white12),
-                      const SizedBox(height: 15),
-
-                      // SEZIONE 1: COMMENTI
-                      Text("FEEDBACK", style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
-                      const SizedBox(height: 5),
-                      Text(feedbackPart, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, height: 1.5)),
-
-                      // SEZIONE 2: RISPOSTA IDEALE (Se disponibile)
-                      if (idealPart != null) ...[
-                        const SizedBox(height: 20),
-                        Container(height: 1, color: Colors.white10), // Divisore interno
-                        const SizedBox(height: 15),
-                        Text("IDEAL ANSWER", style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: kVividGreen, letterSpacing: 1.2)),
-                        const SizedBox(height: 5),
-                        Text(idealPart, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14, fontStyle: FontStyle.italic, height: 1.5)),
-                      ]
-                    ],
-                  ),
+                    );
+                  }
                 )
             ],
           ),
@@ -285,7 +299,8 @@ class QuizCard extends StatelessWidget {
     );
   }
 }
-// --- 2. CHAT PANEL ---
+
+// ... ChatPanel e FilterDropdown restano uguali ...
 class ChatPanel extends StatelessWidget {
   final VoidCallback onClose;
   final List<Map<String, String>> messages;
@@ -369,7 +384,6 @@ class ChatPanel extends StatelessWidget {
   }
 }
 
-// --- 3. FILTER DROPDOWN ---
 class FilterDropdown extends StatelessWidget {
   final String value;
   final List<DropdownMenuItem<String>> items;

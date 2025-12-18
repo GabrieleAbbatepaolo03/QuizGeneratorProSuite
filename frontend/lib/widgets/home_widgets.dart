@@ -2,11 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:iconly/iconly.dart'; // Import Iconly
+import 'package:iconly/iconly.dart'; 
 import 'package:quiz_generator_pro/l10n/app_localizations.dart';
 import 'package:quiz_generator_pro/models/quiz_models.dart';
 
-// --- COSTANTI COLORI ---
 const Color kVividGreen = Color(0xFF00E676);
 const Color kSurfaceColor = Color(0xFF161616);
 const Color kCardColor = Color(0xFF1E1E1E);
@@ -17,7 +16,7 @@ class HistoryTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onRename;
-  final VoidCallback onExport; // <--- NUOVO
+  final VoidCallback onExport; 
 
   const HistoryTile({
     super.key,
@@ -25,7 +24,7 @@ class HistoryTile extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
     required this.onRename,
-    required this.onExport, // <--- NUOVO
+    required this.onExport, 
   });
 
   @override
@@ -94,7 +93,6 @@ class HistoryTile extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // EXPORT BUTTON
             IconButton(
               icon: const Icon(CupertinoIcons.share, size: 20, color: Colors.blueAccent),
               tooltip: "Export JSON",
@@ -138,11 +136,12 @@ class SystemSpecsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final specs = systemStatus?['specs'] as Map<String, dynamic>?;
 
     return AlertDialog(
       backgroundColor: kCardColor,
-      title: Text("System Specs", style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+      title: Text(l10n.systemSpecs, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,7 +149,7 @@ class SystemSpecsDialog extends StatelessWidget {
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(CupertinoIcons.desktopcomputer, color: kVividGreen),
-            title: Text("Backend API", style: GoogleFonts.poppins(color: Colors.white)),
+            title: Text(l10n.backendApi, style: GoogleFonts.poppins(color: Colors.white)),
             subtitle: Text(systemStatus?['status'] ?? "Offline", 
               style: GoogleFonts.poppins(color: (systemStatus?['status'] == 'online') ? Colors.green : Colors.red)
             ),
@@ -159,7 +158,7 @@ class SystemSpecsDialog extends StatelessWidget {
           if (specs != null) ...[
              Padding(
                padding: const EdgeInsets.only(bottom: 8.0),
-               child: Text("HARDWARE", style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+               child: Text(l10n.hardware, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
              ),
              _buildSpecRow("CPU", specs['cpu'] ?? "N/A", CupertinoIcons.waveform_path_ecg),
              const SizedBox(height: 8),
@@ -170,7 +169,7 @@ class SystemSpecsDialog extends StatelessWidget {
           ],
           Padding(
                padding: const EdgeInsets.symmetric(vertical: 8.0),
-               child: Text("AI MODELS", style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+               child: Text(l10n.aiModels, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
           ),
           ...(systemStatus?['models'] as List? ?? []).map((m) {
             final model = ModelInfo.fromJson(m);
@@ -187,7 +186,7 @@ class SystemSpecsDialog extends StatelessWidget {
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: Text("Close", style: GoogleFonts.poppins(color: Colors.white)))
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.close, style: GoogleFonts.poppins(color: Colors.white)))
       ],
     );
   }
@@ -286,7 +285,7 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  decoration: dropdownDecor.copyWith(labelText: "AI Model"),
+                  decoration: dropdownDecor.copyWith(labelText: l10n.aiModelLabel),
                   value: widget.selectedModelId,
                   dropdownColor: const Color(0xFF333333),
                   borderRadius: BorderRadius.circular(16),
@@ -298,15 +297,15 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
               const SizedBox(width: 15),
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  decoration: dropdownDecor.copyWith(labelText: "Type"),
+                  decoration: dropdownDecor.copyWith(labelText: l10n.typeLabel),
                   value: widget.selectedType,
                   dropdownColor: const Color(0xFF333333),
                   borderRadius: BorderRadius.circular(16),
                   style: GoogleFonts.poppins(color: Colors.white),
                   items: [
-                    DropdownMenuItem(value: "mixed", child: Text(l10n.quizTypeMixed, style: TextStyle(color: Colors.white))),
-                    DropdownMenuItem(value: "open", child: Text(l10n.quizTypeOpen, style: TextStyle(color: Colors.white))),
-                    DropdownMenuItem(value: "multiple", child: Text(l10n.quizTypeMultiple, style: TextStyle(color: Colors.white))),
+                    DropdownMenuItem(value: "mixed", child: Text(l10n.quizTypeMixed, style: const TextStyle(color: Colors.white))),
+                    DropdownMenuItem(value: "open", child: Text(l10n.quizTypeOpen, style: const TextStyle(color: Colors.white))),
+                    DropdownMenuItem(value: "multiple", child: Text(l10n.quizTypeMultiple, style: const TextStyle(color: Colors.white))),
                   ],
                   onChanged: (widget.isGenerating || widget.isReady) ? null : (v) => widget.onTypeChanged(v!),
                 ),
@@ -337,7 +336,6 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text("${l10n.numberOfQuestions}: ${widget.numQuestions.round()}", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
-                    // Allineamento Slider: Shift a sinistra di 24px per compensare il padding nativo
                     Transform.translate(
                       offset: const Offset(-24, 0),
                       child: Slider(
@@ -358,7 +356,6 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text("${l10n.optionsLabel}: ${widget.maxOptions}", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
-                      // Allineamento Slider: Shift a sinistra di 24px
                       Transform.translate(
                         offset: const Offset(-24, 0),
                         child: Slider(
@@ -377,7 +374,6 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
 
           const SizedBox(height: 30),
 
-          // TASTO DI AZIONE
           GestureDetector(
             onTap: widget.isGenerating 
                 ? null 
@@ -396,7 +392,6 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
               ),
               child: Stack(
                 children: [
-                  // Sfondo Progresso
                   if (!widget.isReady)
                     AnimatedFractionallySizedBox(
                       duration: const Duration(milliseconds: 300),
@@ -410,7 +405,6 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
                       ),
                     ),
                   
-                  // Contenuto Testo/Icona
                   Center(
                     child: widget.isGenerating 
                     ? Row(
@@ -465,6 +459,9 @@ class EmptyStateButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Non ho trovato stringhe per questo specifico bottone nei file originali,
+    // quindi uso stringhe fisse o chiavi esistenti se appropriato.
+    // Sarebbe meglio aggiungere "uploadToUnlock" ai file .arb.
     return Container(
       height: 80,
       decoration: BoxDecoration(

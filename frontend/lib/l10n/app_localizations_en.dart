@@ -202,4 +202,139 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restartQuiz => 'Restart';
+
+  @override
+  String errorFileExists(String fileName) {
+    return 'Error: \'$fileName\' already exists in library.';
+  }
+
+  @override
+  String errorUploadFailed(String fileName) {
+    return 'Upload failed for $fileName';
+  }
+
+  @override
+  String get errorSelectFile => 'Please select at least one file from the Archive.';
+
+  @override
+  String get errorLoadContext => 'Failed to load context. Please check backend connection.';
+
+  @override
+  String get errorStartGeneration => 'Failed to start generation job';
+
+  @override
+  String get successExport => 'Quiz Exported Successfully!';
+
+  @override
+  String errorExport(String error) {
+    return 'Export Failed: $error';
+  }
+
+  @override
+  String get successImport => 'Quiz Imported Successfully!';
+
+  @override
+  String errorImport(String error) {
+    return 'Import Failed: $error';
+  }
+
+  @override
+  String get renameSession => 'Rename Session';
+
+  @override
+  String get renameQuiz => 'Rename Quiz';
+
+  @override
+  String get newName => 'New name';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get addNewPdf => 'Add New PDF';
+
+  @override
+  String get uploading => 'Uploading...';
+
+  @override
+  String get libraryEmpty => 'Library is empty';
+
+  @override
+  String selectedFiles(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get deleteSelected => 'Delete Selected';
+
+  @override
+  String get importedModeWarning => '⚠️ IMPORTED MODE: Source files not found. AI Chat and Grading are disabled.';
+
+  @override
+  String get aiGradingUnavailable => '⚠️ AI Grading is unavailable because source files are missing (Imported Mode).';
+
+  @override
+  String get aiChatUnavailable => '⚠️ AI Unavailable: Source documents are missing. Chat is disabled for this imported session.';
+
+  @override
+  String get aiRegenUnavailable => 'AI Regeneration unavailable in Imported Mode.';
+
+  @override
+  String get noQuestionsFound => 'No questions found.';
+
+  @override
+  String get editQuestion => 'Edit Question';
+
+  @override
+  String get updateAi => 'Update AI';
+
+  @override
+  String aiEvaluation(int score) {
+    return 'AI Evaluation: $score/100';
+  }
+
+  @override
+  String get aiUnavailable => 'AI Unavailable';
+
+  @override
+  String get feedbackLabel => 'FEEDBACK';
+
+  @override
+  String get idealAnswerLabel => 'IDEAL ANSWER';
+
+  @override
+  String get systemSpecs => 'System Specs';
+
+  @override
+  String get backendApi => 'Backend API';
+
+  @override
+  String get hardware => 'HARDWARE';
+
+  @override
+  String get aiModels => 'AI MODELS';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get aiModelLabel => 'AI Model';
+
+  @override
+  String get typeLabel => 'Type';
+
+  @override
+  String get allTypes => 'All Types';
+
+  @override
+  String get openType => 'Open';
+
+  @override
+  String get multipleChoiceType => 'Multiple Choice';
+
+  @override
+  String get allFiles => 'All Files';
 }

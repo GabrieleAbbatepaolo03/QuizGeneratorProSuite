@@ -21,14 +21,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  List<String> _remoteFiles = [];
+  // Data for the Library
+  List<String> _libraryFiles = []; 
+  Set<String> _selectedFiles = {}; 
+  
   List<QuizSession> _history = [];
   Map<String, dynamic>? _systemStatus;
   
   bool _isLoadingData = false;
   bool _isUploading = false;
   
-  // Stato Generazione
+  // Generation State
   bool _isGenerating = false;
   double _generationProgress = 0.0;
   Timer? _pollingTimer; 
@@ -61,12 +64,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Future<void> _refreshData() async {
     setState(() => _isLoadingData = true);
-    // Tolleranza per backend offline (permettiamo di usare l'app in sola lettura)
+    
     Map<String, dynamic> status = {'files': [], 'models': []};
     try {
       status = await ApiService.getSystemStatus();
     } catch (e) {
-      // Backend offline, ma continuiamo per permettere l'uso della cronologia
       debugPrint("Backend offline: $e");
     }
 
@@ -74,7 +76,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     
     if (mounted) {
       setState(() {
-        _remoteFiles = List<String>.from(status['files'] ?? []);
+        _libraryFiles = List<String>.from(status['files'] ?? []);
+        _selectedFiles = _selectedFiles.intersection(_libraryFiles.toSet());
         _systemStatus = status;
         _history = history;
         _isLoadingData = false;
@@ -89,74 +92,39 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  // --- EXPORT / IMPORT LOGIC ---
-  Future<void> _exportSession(QuizSession session) async {
-    try {
-      // 1. Converti in JSON
-      String jsonStr = jsonEncode(session.toJson());
-      String fileName = "quiz_${session.topic.replaceAll(' ', '_')}.json";
-
-      // 2. Chiedi dove salvare
-      String? outputFile = await FilePicker.platform.saveFile(
-        dialogTitle: 'Export Quiz Session',
-        fileName: fileName,
-        type: FileType.custom,
-        allowedExtensions: ['json'],
-      );
-
-      // 3. Scrivi file
-      if (outputFile != null) {
-        // Aggiungi estensione se manca (Windows a volte non la mette in automatico)
-        if (!outputFile.toLowerCase().endsWith('.json')) {
-          outputFile += '.json';
-        }
-        await File(outputFile).writeAsString(jsonStr);
-        if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Quiz Exported Successfully!")));
-      }
-    } catch (e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Export Failed: $e")));
-    }
-  }
-
-  Future<void> _importSession() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['json'],
-      );
-
-      if (result != null && result.files.single.path != null) {
-        File file = File(result.files.single.path!);
-        String content = await file.readAsString();
-        
-        // Parsing
-        Map<String, dynamic> jsonData = jsonDecode(content);
-        // Rigenera ID per evitare conflitti o mantieni quello originale se preferisci
-        jsonData['id'] = DateTime.now().millisecondsSinceEpoch.toString(); 
-        
-        QuizSession importedSession = QuizSession.fromJson(jsonData);
-        
-        // Salva
-        await QuizHistoryService.saveSession(importedSession);
-        await _refreshData();
-        
-        if(mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Quiz Imported Successfully!")));
-      }
-    } catch (e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Import Failed (Invalid JSON): $e")));
-    }
-  }
-
+  // --- UPLOAD LOGIC ---
   Future<void> _uploadPdf() async {
+    final l10n = AppLocalizations.of(context)!;
+    
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom, allowedExtensions: ['pdf'], allowMultiple: true 
     );
 
     if (result != null) {
       setState(() => _isUploading = true);
+      
       for (var f in result.files) {
-        if (f.path != null) await ApiService.uploadPdf(File(f.path!));
+        if (f.path == null) continue;
+        
+        if (_libraryFiles.contains(f.name)) {
+          if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10n.errorFileExists(f.name)),
+            backgroundColor: Colors.redAccent,
+            duration: const Duration(seconds: 2),
+          ));
+          continue;
+        }
+
+        bool ok = await ApiService.uploadPdf(File(f.path!));
+        if (ok) {
+           setState(() {
+             _selectedFiles.add(f.name);
+           });
+        } else {
+           if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorUploadFailed(f.name))));
+        }
       }
+      
       await _refreshData();
       if (mounted) setState(() => _isUploading = false);
     }
@@ -164,53 +132,27 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Future<void> _deleteFile(String filename) async {
     await ApiService.deleteFile(filename);
+    setState(() {
+      _selectedFiles.remove(filename);
+    });
     await _refreshData();
-  }
-
-  Future<void> _deleteSession(String sessionId) async {
-    await QuizHistoryService.deleteSession(sessionId);
-    await _refreshData();
-  }
-
-  Future<void> _renameSession(QuizSession session) async {
-    TextEditingController renameCtrl = TextEditingController(text: session.topic);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text("Rename Session", style: TextStyle(color: Colors.white)),
-        content: TextField(
-          controller: renameCtrl,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(hintText: "New name"),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: _vividGreen),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              if (renameCtrl.text.isNotEmpty) {
-                final updated = QuizSession(
-                  id: session.id, 
-                  topic: renameCtrl.text,
-                  date: session.date, 
-                  questions: session.questions
-                );
-                await QuizHistoryService.updateSession(updated);
-                _refreshData();
-              }
-            }, 
-            child: const Text("Save")
-          )
-        ],
-      ),
-    );
   }
 
   // --- GENERATION LOGIC ---
   Future<void> _startQuizGeneration() async {
     if (_isGenerating) return;
+    
+    final l10n = AppLocalizations.of(context)!;
+
+    if (_selectedFiles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.errorSelectFile), 
+          backgroundColor: Colors.orange
+        )
+      );
+      return;
+    }
 
     setState(() {
       _generatedSession = null;
@@ -219,6 +161,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     });
 
     try {
+      bool contextOk = await ApiService.loadContext(_selectedFiles.toList());
+      
+      if (!contextOk) {
+        throw l10n.errorLoadContext;
+      }
+
       if (_selectedModelId != null) {
          await ApiService.switchModel(_selectedModelId!);
       }
@@ -234,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         _maxOptions
       );
 
-      if (jobId == null) throw "Failed to start generation";
+      if (jobId == null) throw l10n.errorStartGeneration;
 
       _pollingTimer = Timer.periodic(const Duration(milliseconds: 1000), (timer) async {
         final status = await ApiService.checkQuizStatus(jobId);
@@ -261,7 +209,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               questions: questions
             );
             
-            await ApiService.clearAllFiles(); 
             await _refreshData(); 
             
             setState(() {
@@ -273,15 +220,99 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         } else if (state == 'failed') {
           timer.cancel();
           setState(() => _isGenerating = false);
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${status['error']}")));
+          if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${status['error']}")));
         }
       });
 
     } catch (e) {
        _pollingTimer?.cancel();
        setState(() => _isGenerating = false);
-       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+       if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
+  }
+
+  Future<void> _exportSession(QuizSession session) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      String jsonStr = jsonEncode(session.toJson());
+      String fileName = "quiz_${session.topic.replaceAll(' ', '_')}.json";
+      String? outputFile = await FilePicker.platform.saveFile(
+        dialogTitle: 'Export Quiz Session',
+        fileName: fileName,
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+      if (outputFile != null) {
+        if (!outputFile.toLowerCase().endsWith('.json')) outputFile += '.json';
+        await File(outputFile).writeAsString(jsonStr);
+        if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.successExport)));
+      }
+    } catch (e) {
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorExport(e.toString()))));
+    }
+  }
+
+  Future<void> _importSession() async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom, allowedExtensions: ['json'],
+      );
+      if (result != null && result.files.single.path != null) {
+        File file = File(result.files.single.path!);
+        String content = await file.readAsString();
+        Map<String, dynamic> jsonData = jsonDecode(content);
+        jsonData['id'] = DateTime.now().millisecondsSinceEpoch.toString(); 
+        QuizSession importedSession = QuizSession.fromJson(jsonData);
+        await QuizHistoryService.saveSession(importedSession);
+        await _refreshData();
+        if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.successImport)));
+      }
+    } catch (e) {
+      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorImport(e.toString()))));
+    }
+  }
+
+  Future<void> _deleteSession(String sessionId) async {
+    await QuizHistoryService.deleteSession(sessionId);
+    await _refreshData();
+  }
+
+  Future<void> _renameSession(QuizSession session) async {
+    final l10n = AppLocalizations.of(context)!;
+    TextEditingController renameCtrl = TextEditingController(text: session.topic);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: Text(l10n.renameSession, style: const TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: renameCtrl,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(hintText: l10n.newName),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: _vividGreen),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              if (renameCtrl.text.isNotEmpty) {
+                final updated = QuizSession(
+                  id: session.id, 
+                  topic: renameCtrl.text,
+                  date: session.date, 
+                  questions: session.questions
+                );
+                await QuizHistoryService.updateSession(updated);
+                _refreshData();
+              }
+            }, 
+            child: Text(l10n.save)
+          )
+        ],
+      ),
+    );
   }
 
   Future<void> _openGeneratedQuiz() async {
@@ -296,33 +327,33 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _showSystemSpecs() {
-    showDialog(
-      context: context,
-      builder: (ctx) => SystemSpecsDialog(systemStatus: _systemStatus),
-    );
+    showDialog(context: context, builder: (ctx) => SystemSpecsDialog(systemStatus: _systemStatus));
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isWide = MediaQuery.of(context).size.width > 900;
-    const double sideMenuWidth = 350;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    final bool showSideMenu = screenWidth >= 1100;
+    const double sideMenuWidth = 400;
 
     return Scaffold(
       extendBodyBehindAppBar: true, 
       appBar: AppBar(
         centerTitle: false,
-        titleSpacing: isWide ? 0 : null,
+        titleSpacing: showSideMenu ? 0 : null,
         title: Padding(
-          padding: EdgeInsets.only(left: isWide ? sideMenuWidth + 24 : 0),
+          padding: EdgeInsets.only(left: showSideMenu ? sideMenuWidth + 24 : 0),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset('assets/QUIZAI_logo.png', height: 35),
+              Image.asset('assets/QUIZAI_logo.png', height: 35, errorBuilder: (c,e,s) => const Icon(Icons.flash_on, color: Color(0xFF00E676))),
               const SizedBox(width: 12),
-              Text(l10n.dashboardTitle, 
-                style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, fontSize: 24, color: Colors.white)
-              ),
+              if (screenWidth > 600)
+                Text(l10n.dashboardTitle, 
+                  style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, fontSize: 24, color: Colors.white)
+                ),
             ],
           ),
         ),
@@ -355,10 +386,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           const SizedBox(width: 24),
         ],
       ),
-      drawer: isWide ? null : Drawer(backgroundColor: const Color(0xFF0A0A0A), child: _buildHistoryColumn(l10n)),
+      drawer: showSideMenu 
+          ? null 
+          : SizedBox(
+              width: sideMenuWidth, 
+              child: Drawer(
+                backgroundColor: const Color(0xFF0A0A0A), 
+                child: _buildHistoryColumn(l10n)
+              ),
+            ),
       body: Row(
         children: [
-          if (isWide) 
+          if (showSideMenu) 
             Container(
               width: sideMenuWidth, 
               decoration: const BoxDecoration(
@@ -375,68 +414,118 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 110, 24, 0),
+                      padding: EdgeInsets.fromLTRB(
+                        screenWidth > 600 ? 24 : 16, 
+                        110, 
+                        screenWidth > 600 ? 24 : 16, 
+                        0
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(l10n.activeFile, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[400], letterSpacing: 1.2)),
-                          const SizedBox(height: 15),
-                          // FILE LIST CONTAINER
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(l10n.activeFile, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey[400], letterSpacing: 1.2)),
+                              TextButton.icon(
+                                onPressed: _isUploading ? null : _uploadPdf,
+                                icon: _isUploading 
+                                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                  : const Icon(CupertinoIcons.add, size: 18),
+                                label: Text(_isUploading ? l10n.uploading : l10n.addNewPdf),
+                                style: TextButton.styleFrom(foregroundColor: _vividGreen),
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+
                           Container(
-                            constraints: const BoxConstraints(maxHeight: 250),
+                            constraints: const BoxConstraints(maxHeight: 250), 
                             decoration: BoxDecoration(
                               color: const Color(0xFF1E1E1E),
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(color: Colors.white.withOpacity(0.05)),
                             ),
-                            child: _remoteFiles.isEmpty 
+                            child: _libraryFiles.isEmpty 
                               ? Padding(
                                   padding: const EdgeInsets.all(24.0),
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(CupertinoIcons.doc_text_search, size: 48, color: Colors.grey[700]),
-                                      const SizedBox(height: 16),
-                                      Text(l10n.noFileLoaded, style: TextStyle(color: Colors.grey[600])),
+                                      Icon(CupertinoIcons.folder, size: 40, color: Colors.grey[700]),
+                                      const SizedBox(height: 10),
+                                      Text(l10n.libraryEmpty, style: TextStyle(color: Colors.grey[600])),
                                     ],
                                   ),
                                 )
                               : ListView.separated(
                                   shrinkWrap: true,
-                                  padding: const EdgeInsets.all(16),
-                                  itemCount: _remoteFiles.length,
-                                  separatorBuilder: (_, __) => const Divider(color: Color(0xFF2A2A2A)),
+                                  padding: const EdgeInsets.all(8),
+                                  itemCount: _libraryFiles.length,
+                                  separatorBuilder: (_, __) => const Divider(color: Color(0xFF2A2A2A), height: 1),
                                   itemBuilder: (ctx, i) {
-                                    final f = _remoteFiles[i];
-                                    return ListTile(
-                                      leading: Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                                        child: const Icon(CupertinoIcons.doc_fill, color: Colors.redAccent),
+                                    final fileName = _libraryFiles[i];
+                                    final isSelected = _selectedFiles.contains(fileName);
+
+                                    return CheckboxListTile(
+                                      value: isSelected,
+                                      activeColor: _vividGreen,
+                                      checkColor: Colors.black,
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      title: Text(
+                                        fileName, 
+                                        style: TextStyle(
+                                          color: isSelected ? Colors.white : Colors.grey[400], 
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      title: Text(f, style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.white)),
-                                      trailing: IconButton(
-                                        icon: const Icon(IconlyLight.delete, size: 20, color: Colors.redAccent), 
-                                        onPressed: () => _deleteFile(f)
+                                      secondary: IconButton(
+                                        icon: const Icon(IconlyLight.delete, size: 20, color: Colors.redAccent),
+                                        onPressed: () => _deleteFile(fileName), 
                                       ),
+                                      onChanged: (bool? val) {
+                                        setState(() {
+                                          if (val == true) {
+                                            _selectedFiles.add(fileName);
+                                          } else {
+                                            _selectedFiles.remove(fileName);
+                                          }
+                                        });
+                                      },
+                                      controlAffinity: ListTileControlAffinity.leading, 
                                     );
                                   },
                                 ),
                           ),
-                          const SizedBox(height: 20),
-                          Center(
-                            child: TextButton.icon(
-                              onPressed: _isUploading ? null : _uploadPdf,
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.white70,
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          
+                          if (_libraryFiles.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8, right: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    l10n.selectedFiles(_selectedFiles.length), 
+                                    style: TextStyle(color: _selectedFiles.isNotEmpty ? _vividGreen : Colors.grey[600], fontSize: 12)
+                                  ),
+                                  if (_selectedFiles.isNotEmpty) ...[
+                                    const SizedBox(width: 10),
+                                    TextButton(
+                                      onPressed: () {
+                                        for(var f in _selectedFiles.toList()) {
+                                          _deleteFile(f);
+                                        }
+                                      }, 
+                                      child: Text(l10n.deleteSelected, style: const TextStyle(color: Colors.redAccent, fontSize: 12))
+                                    )
+                                  ]
+                                ],
                               ),
-                              icon: _isUploading 
-                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
-                                : const Icon(CupertinoIcons.add),
-                              label: Text(_isUploading ? l10n.readingPdf : l10n.uploadPdf),
                             ),
-                          ),
+
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
@@ -444,13 +533,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   SliverFillRemaining(
                     hasScrollBody: false,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth > 600 ? 24 : 16, 
+                        vertical: 16
+                      ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const SizedBox(height: 40),
-                          if (_remoteFiles.isEmpty && _generatedSession == null)
+                          const SizedBox(height: 20),
+                          if (_libraryFiles.isEmpty && _generatedSession == null)
                             const EmptyStateButton() 
                           else 
                             QuizConfigPanel(
@@ -499,7 +591,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   Text(l10n.quizHistory, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.5, color: Colors.white)),
                 ],
               ),
-              // IMPORT BUTTON
               IconButton(
                 onPressed: _importSession,
                 tooltip: "Import Quiz JSON",
@@ -513,14 +604,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           child: _history.isEmpty 
             ? Center(child: Text(l10n.noHistory, style: TextStyle(color: Colors.grey[700])))
             : ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                 itemCount: _history.length,
                 itemBuilder: (ctx, i) {
                   return HistoryTile(
                     session: _history[i],
                     onDelete: () => _deleteSession(_history[i].id),
                     onRename: () => _renameSession(_history[i]), 
-                    onExport: () => _exportSession(_history[i]), // LINK EXPORT
+                    onExport: () => _exportSession(_history[i]), 
                     onTap: () {
                        if (Scaffold.of(ctx).hasDrawer) Navigator.pop(context);
                        Navigator.push(context, MaterialPageRoute(builder: (_) => StudyScreen(existingSession: _history[i], systemStatus: _systemStatus))).then((_) => _refreshData());

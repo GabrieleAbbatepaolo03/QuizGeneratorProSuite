@@ -202,4 +202,139 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get restartQuiz => 'Ricomincia';
+
+  @override
+  String errorFileExists(String fileName) {
+    return 'Errore: \'$fileName\' esiste già nella libreria.';
+  }
+
+  @override
+  String errorUploadFailed(String fileName) {
+    return 'Caricamento fallito per $fileName';
+  }
+
+  @override
+  String get errorSelectFile => 'Seleziona almeno un file dall\'Archivio.';
+
+  @override
+  String get errorLoadContext => 'Impossibile caricare il contesto. Controlla la connessione al backend.';
+
+  @override
+  String get errorStartGeneration => 'Impossibile avviare la generazione';
+
+  @override
+  String get successExport => 'Quiz esportato con successo!';
+
+  @override
+  String errorExport(String error) {
+    return 'Esportazione fallita: $error';
+  }
+
+  @override
+  String get successImport => 'Quiz importato con successo!';
+
+  @override
+  String errorImport(String error) {
+    return 'Importazione fallita: $error';
+  }
+
+  @override
+  String get renameSession => 'Rinomina Sessione';
+
+  @override
+  String get renameQuiz => 'Rinomina Quiz';
+
+  @override
+  String get newName => 'Nuovo nome';
+
+  @override
+  String get save => 'Salva';
+
+  @override
+  String get cancel => 'Annulla';
+
+  @override
+  String get addNewPdf => 'Aggiungi Nuovo PDF';
+
+  @override
+  String get uploading => 'Caricamento...';
+
+  @override
+  String get libraryEmpty => 'Libreria vuota';
+
+  @override
+  String selectedFiles(int count) {
+    return '$count selezionati';
+  }
+
+  @override
+  String get deleteSelected => 'Elimina Selezionati';
+
+  @override
+  String get importedModeWarning => '⚠️ MODALITÀ IMPORT: File sorgenti non trovati. Chat AI e Valutazione disabilitati.';
+
+  @override
+  String get aiGradingUnavailable => '⚠️ Valutazione AI non disponibile perché mancano i file sorgenti (Modalità Import).';
+
+  @override
+  String get aiChatUnavailable => '⚠️ AI non disponibile: Documenti sorgente mancanti. Chat disabilitata per questa sessione importata.';
+
+  @override
+  String get aiRegenUnavailable => 'Rigenerazione AI non disponibile in Modalità Import.';
+
+  @override
+  String get noQuestionsFound => 'Nessuna domanda trovata.';
+
+  @override
+  String get editQuestion => 'Modifica Domanda';
+
+  @override
+  String get updateAi => 'Aggiorna AI';
+
+  @override
+  String aiEvaluation(int score) {
+    return 'Valutazione AI: $score/100';
+  }
+
+  @override
+  String get aiUnavailable => 'AI Non Disponibile';
+
+  @override
+  String get feedbackLabel => 'FEEDBACK';
+
+  @override
+  String get idealAnswerLabel => 'RISPOSTA IDEALE';
+
+  @override
+  String get systemSpecs => 'Specifiche Sistema';
+
+  @override
+  String get backendApi => 'API Backend';
+
+  @override
+  String get hardware => 'HARDWARE';
+
+  @override
+  String get aiModels => 'MODELLI AI';
+
+  @override
+  String get close => 'Chiudi';
+
+  @override
+  String get aiModelLabel => 'Modello AI';
+
+  @override
+  String get typeLabel => 'Tipo';
+
+  @override
+  String get allTypes => 'Tutti i Tipi';
+
+  @override
+  String get openType => 'Aperta';
+
+  @override
+  String get multipleChoiceType => 'Scelta Multipla';
+
+  @override
+  String get allFiles => 'Tutti i File';
 }

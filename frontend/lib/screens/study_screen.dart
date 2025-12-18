@@ -1,4 +1,4 @@
-import 'dart:ui'; // Import necessario per BackdropFilter
+import 'dart:ui'; 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,7 +8,6 @@ import 'package:quiz_generator_pro/services/api_service.dart';
 import 'package:quiz_generator_pro/services/history_service.dart';
 import 'package:quiz_generator_pro/widgets/study_widgets.dart';
 
-// Costanti Colori
 const Color kVividGreen = Color(0xFF00E676);
 const Color kBgColor = Color(0xFF0A0A0A);
 
@@ -26,21 +25,19 @@ class _StudyScreenState extends State<StudyScreen> {
   List<QuizQuestion> _allQuestions = [];
   List<QuizQuestion> _filteredQuestions = [];
   
-  // Controller Navigazione
   late PageController _pageController;
   int _currentQuestionIndex = 0;
   bool _isProcessing = false;
   
-  // Filtri
+  bool _isAiAvailable = false; 
+
   String _filterFile = "all";
   String _filterType = "all";
 
-  // Chat
   List<Map<String, String>> _chatMessages = [];
   final TextEditingController _chatInputController = TextEditingController();
   bool _isChatOpen = false;
 
-  // Sessione
   String? _currentSessionId;
   String _topicTitle = "";
 
@@ -55,6 +52,41 @@ class _StudyScreenState extends State<StudyScreen> {
       _currentSessionId = widget.existingSession!.id;
       _topicTitle = widget.existingSession!.topic;
     }
+    
+    _checkContextAvailability();
+  }
+
+  Future<void> _checkContextAvailability() async {
+    try {
+      final status = await ApiService.getSystemStatus();
+      final List<String> remoteFiles = List<String>.from(status['files'] ?? []);
+      
+      bool found = false;
+      for (var q in _allQuestions) {
+        if (remoteFiles.contains(q.sourceFile)) {
+          found = true;
+          break;
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _isAiAvailable = found;
+        });
+        
+        if (!_isAiAvailable) {
+          _chatMessages.add({
+            'role': 'system', 
+            'text': AppLocalizations.of(context)!.importedModeWarning
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Check Context Error: $e");
+      if (mounted) {
+        setState(() => _isAiAvailable = false);
+      }
+    }
   }
 
   @override
@@ -64,7 +96,6 @@ class _StudyScreenState extends State<StudyScreen> {
     super.dispose();
   }
 
-  // --- FILTRI ---
   void _applyFilters() {
     setState(() {
       _filteredQuestions = _allQuestions.where((q) {
@@ -80,7 +111,6 @@ class _StudyScreenState extends State<StudyScreen> {
     });
   }
 
-  // --- PERSISTENZA ---
   Future<void> _saveSessionState() async {
     if (_allQuestions.isNotEmpty && _currentSessionId != null) {
       final updatedSession = QuizSession(
@@ -93,10 +123,10 @@ class _StudyScreenState extends State<StudyScreen> {
     }
   }
 
-// --- AZIONI SULLE DOMANDE ---
   void _submitAnswer(String answer) async {
     if (_filteredQuestions.isEmpty) return;
     QuizQuestion q = _filteredQuestions[_currentQuestionIndex];
+    final l10n = AppLocalizations.of(context)!;
 
     if (q.isLocked || answer.trim().isEmpty) return;
     
@@ -109,31 +139,33 @@ class _StudyScreenState extends State<StudyScreen> {
       bool isCorrect = answer.startsWith(q.correctAnswer.split(')')[0]);
       setState(() {
         q.aiScore = isCorrect ? 100 : 0;
-        // Per le multiple non usiamo lo split, è testo semplice
         q.aiFeedback = isCorrect ? "Correct Answer!" : "Wrong. Correct answer: ${q.correctAnswer}";
       });
     } else {
-      // --- LOGICA DOMANDE APERTE MODIFICATA ---
-      final locale = Localizations.localeOf(context).languageCode;
-      
-      // Chiamata API
-      final grading = await ApiService.gradeAnswer(q.questionText, q.correctAnswer, answer, locale);
-      
-      if (mounted) {
+      if (_isAiAvailable) {
+        final locale = Localizations.localeOf(context).languageCode;
+        final grading = await ApiService.gradeAnswer(q.questionText, q.correctAnswer, answer, locale);
+        
+        if (mounted) {
+          setState(() {
+            q.aiScore = grading['score'];
+            String feedbackPart = grading['feedback'] ?? "No feedback";
+            String idealPart = grading['ideal_answer'] ?? q.correctAnswer;
+            q.aiFeedback = "$feedbackPart###SPLIT###$idealPart";
+          });
+        }
+      } else {
         setState(() {
-          q.aiScore = grading['score'];
+          q.aiScore = 0; 
+          String warningMsg = l10n.aiGradingUnavailable;
+          String idealPart = q.correctAnswer; 
           
-          // SALVIAMO I DUE PEZZI UNITI DA UN SEPARATORE "###SPLIT###"
-          String feedbackPart = grading['feedback'] ?? "No feedback";
-          String idealPart = grading['ideal_answer'] ?? q.correctAnswer;
-          
-          q.aiFeedback = "$feedbackPart###SPLIT###$idealPart";
+          q.aiFeedback = "$warningMsg###SPLIT###$idealPart";
         });
       }
     }
     await _saveSessionState();
 
-    // CHECK COMPLETAMENTO
     bool allAnswered = _filteredQuestions.every((q) => q.isLocked);
     if (allAnswered) {
       Future.delayed(const Duration(seconds: 1), () {
@@ -142,8 +174,8 @@ class _StudyScreenState extends State<StudyScreen> {
     }
   }
 
-  // --- GESTIONE COMPLETAMENTO & RESTART ---
   void _showCompletionDialog() {
+    final l10n = AppLocalizations.of(context)!;
     int total = _filteredQuestions.length;
     int correct = _filteredQuestions.where((q) => (q.aiScore ?? 0) >= 60).length;
     int score = total > 0 ? ((correct / total) * 100).round() : 0;
@@ -156,7 +188,6 @@ class _StudyScreenState extends State<StudyScreen> {
       pageBuilder: (ctx, anim1, anim2) => Container(),
       transitionBuilder: (ctx, anim1, anim2, child) {
         final curvedValue = Curves.easeInOutBack.transform(anim1.value) - 1.0;
-        
         return Transform(
           transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
           child: Opacity(
@@ -164,14 +195,14 @@ class _StudyScreenState extends State<StudyScreen> {
             child: AlertDialog(
               backgroundColor: const Color(0xFF1E1E1E),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: const BorderSide(color: kVividGreen, width: 2)),
-              title: Text(AppLocalizations.of(context)!.quizCompleted, 
+              title: Text(l10n.quizCompleted, 
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(color: kVividGreen, fontWeight: FontWeight.bold, fontSize: 22)
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(AppLocalizations.of(context)!.resultsSummary, style: GoogleFonts.poppins(color: Colors.white70)),
+                  Text(l10n.resultsSummary, style: GoogleFonts.poppins(color: Colors.white70)),
                   const SizedBox(height: 20),
                   Stack(
                     alignment: Alignment.center,
@@ -197,7 +228,7 @@ class _StudyScreenState extends State<StudyScreen> {
                   const SizedBox(height: 30),
                   _buildDialogButton(
                     icon: CupertinoIcons.refresh, 
-                    label: AppLocalizations.of(context)!.restartShuffle, 
+                    label: l10n.restartShuffle, 
                     color: Colors.white,
                     onTap: () { Navigator.pop(ctx); _restartQuiz(); }
                   ),
@@ -205,7 +236,7 @@ class _StudyScreenState extends State<StudyScreen> {
                   if (correct < total) ...[
                     _buildDialogButton(
                       icon: CupertinoIcons.exclamationmark_triangle, 
-                      label: AppLocalizations.of(context)!.reviewErrors, 
+                      label: l10n.reviewErrors, 
                       color: Colors.orangeAccent,
                       onTap: () { Navigator.pop(ctx); _retryWrong(); }
                     ),
@@ -213,15 +244,12 @@ class _StudyScreenState extends State<StudyScreen> {
                   ],
                   _buildDialogButton(
                     icon: CupertinoIcons.home, 
-                    label: AppLocalizations.of(context)!.backToHome, 
+                    label: l10n.backToHome, 
                     color: Colors.grey,
                     onTap: () async {
-                      // FIX: Navigazione Sicura
-                      Navigator.of(ctx).pop(); // Chiudi Dialog
-                      await Future.delayed(const Duration(milliseconds: 250)); // Attendi fine animazione dialog
-                      if (context.mounted) {
-                        Navigator.of(context).pop(); // Chiudi Screen e torna alla Home
-                      }
+                      Navigator.of(ctx).pop(); 
+                      await Future.delayed(const Duration(milliseconds: 250));
+                      if (context.mounted) Navigator.of(context).pop();
                     } 
                   ),
                 ],
@@ -283,6 +311,12 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   Future<void> _regenerateQuestion(String instruction) async {
+    final l10n = AppLocalizations.of(context)!;
+    if (!_isAiAvailable) {
+       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.aiRegenUnavailable)));
+       return;
+    }
+    
     if (_filteredQuestions.isEmpty) return;
     QuizQuestion currentQ = _filteredQuestions[_currentQuestionIndex];
 
@@ -314,12 +348,13 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   void _renameTitle() {
+    final l10n = AppLocalizations.of(context)!;
     TextEditingController ctrl = TextEditingController(text: _topicTitle);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: Text("Rename Quiz", style: GoogleFonts.poppins(color: Colors.white)),
+        title: Text(l10n.renameQuiz, style: GoogleFonts.poppins(color: Colors.white)),
         content: TextField(
           controller: ctrl,
           style: GoogleFonts.poppins(color: Colors.white),
@@ -329,7 +364,7 @@ class _StudyScreenState extends State<StudyScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: kVividGreen),
             onPressed: () {
@@ -337,7 +372,7 @@ class _StudyScreenState extends State<StudyScreen> {
               _saveSessionState();
               Navigator.pop(ctx);
             }, 
-            child: const Text("Save")
+            child: Text(l10n.save)
           )
         ],
       ),
@@ -345,6 +380,7 @@ class _StudyScreenState extends State<StudyScreen> {
   }
 
   void _sendChatMessage() async {
+    final l10n = AppLocalizations.of(context)!;
     final text = _chatInputController.text.trim();
     if (text.isEmpty) return;
     
@@ -352,6 +388,19 @@ class _StudyScreenState extends State<StudyScreen> {
       _chatMessages.add({'role': 'user', 'text': text});
       _chatInputController.clear();
     });
+
+    if (!_isAiAvailable) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
+        setState(() {
+          _chatMessages.add({
+            'role': 'system', 
+            'text': l10n.aiChatUnavailable
+          });
+        });
+      }
+      return;
+    }
 
     final response = await ApiService.chat(text);
     if (mounted) {
@@ -363,6 +412,7 @@ class _StudyScreenState extends State<StudyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final size = MediaQuery.of(context).size;
     final isWide = size.width > 900;
     final sources = _allQuestions.map((q) => q.sourceFile).toSet().toList();
@@ -371,18 +421,15 @@ class _StudyScreenState extends State<StudyScreen> {
       backgroundColor: kBgColor,
       body: Row( 
         children: [
-          // CONTENUTO PRINCIPALE
           Expanded(
             child: Column(
               children: [
-                // APP BAR
                 Container(
                   padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10, bottom: 10, left: 20, right: 20),
                   color: kBgColor,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Home & Title
                       Expanded(
                         child: Row(
                           children: [
@@ -392,7 +439,7 @@ class _StudyScreenState extends State<StudyScreen> {
                             ),
                             IconButton(
                               icon: const Icon(CupertinoIcons.refresh, color: Colors.white),
-                              tooltip: AppLocalizations.of(context)!.restartQuiz,
+                              tooltip: l10n.restartQuiz,
                               onPressed: _restartQuiz,
                             ),
                             const SizedBox(width: 10),
@@ -406,7 +453,7 @@ class _StudyScreenState extends State<StudyScreen> {
                                     children: [
                                       Flexible(
                                         child: Text(
-                                          _topicTitle.isEmpty ? "Quiz Session" : _topicTitle,
+                                          _topicTitle.isEmpty ? l10n.newSession : _topicTitle,
                                           style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -421,17 +468,15 @@ class _StudyScreenState extends State<StudyScreen> {
                           ],
                         ),
                       ),
-
-                      // Filters & Chat Toggle
                       Row(
                         children: [
                           if (isWide) ...[
                             FilterDropdown(
                               value: _filterType,
-                              items: const [
-                                DropdownMenuItem(value: "all", child: Text("All Types")),
-                                DropdownMenuItem(value: "aperta", child: Text("Open")),
-                                DropdownMenuItem(value: "multipla", child: Text("Multiple Choice")),
+                              items: [
+                                DropdownMenuItem(value: "all", child: Text(l10n.allTypes)),
+                                DropdownMenuItem(value: "aperta", child: Text(l10n.openType)),
+                                DropdownMenuItem(value: "multipla", child: Text(l10n.multipleChoiceType)),
                               ],
                               onChanged: (v) { setState(() => _filterType = v!); _applyFilters(); }
                             ),
@@ -439,7 +484,7 @@ class _StudyScreenState extends State<StudyScreen> {
                             FilterDropdown(
                               value: _filterFile,
                               items: [
-                                const DropdownMenuItem(value: "all", child: Text("All Files")),
+                                DropdownMenuItem(value: "all", child: Text(l10n.allFiles)),
                                 ...sources.map((s) => DropdownMenuItem(value: s, child: Text(s.length > 15 ? "...${s.substring(s.length-15)}" : s))),
                               ],
                               onChanged: (v) { setState(() => _filterFile = v!); _applyFilters(); }
@@ -458,10 +503,9 @@ class _StudyScreenState extends State<StudyScreen> {
                 
                 if (_isProcessing) const LinearProgressIndicator(color: kVividGreen, backgroundColor: kBgColor),
 
-                // PAGE VIEW QUIZ
                 Expanded(
                   child: _filteredQuestions.isEmpty 
-                    ? Center(child: Text("No questions found.", style: GoogleFonts.poppins(color: Colors.grey)))
+                    ? Center(child: Text(l10n.noQuestionsFound, style: GoogleFonts.poppins(color: Colors.grey)))
                     : PageView.builder(
                         controller: _pageController,
                         physics: const BouncingScrollPhysics(),
@@ -477,8 +521,6 @@ class _StudyScreenState extends State<StudyScreen> {
                         },
                       ),
                 ),
-
-                // FOOTER NAVIGAZIONE
                 if (_filteredQuestions.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
@@ -491,7 +533,7 @@ class _StudyScreenState extends State<StudyScreen> {
                             ? () => _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut)
                             : null,
                           icon: const Icon(CupertinoIcons.arrow_left, size: 20),
-                          label: Text(AppLocalizations.of(context)!.previous, style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                          label: Text(l10n.previous, style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
                           style: TextButton.styleFrom(foregroundColor: Colors.white, disabledForegroundColor: Colors.white12),
                         ),
 
@@ -550,7 +592,7 @@ class _StudyScreenState extends State<StudyScreen> {
                           onPressed: _currentQuestionIndex < _filteredQuestions.length - 1
                             ? () => _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut)
                             : null,
-                          label: Text(AppLocalizations.of(context)!.next, style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                          label: Text(l10n.next, style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
                           icon: const Icon(CupertinoIcons.arrow_right, size: 20),
                           style: TextButton.styleFrom(foregroundColor: Colors.white, disabledForegroundColor: Colors.white12),
                         ),
@@ -560,8 +602,6 @@ class _StudyScreenState extends State<StudyScreen> {
               ],
             ),
           ),
-
-          // CHAT SIDEBAR
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,

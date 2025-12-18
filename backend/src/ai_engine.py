@@ -9,7 +9,7 @@ from typing import List, Dict, Any
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings 
-from langchain_community.vectorstores import FAISS  # <--- CAMBIO QUI
+from langchain_community.vectorstores import FAISS 
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -22,20 +22,20 @@ from langchain_classic.chains.combine_documents import create_stuff_documents_ch
 from .models import AVAILABLE_MODELS, QuizRequest
 from .utils import clean_json_output
 
-# Import locali
-from .models import AVAILABLE_MODELS, QuizRequest
-from .utils import clean_json_output
-
 # Costanti
-DB_DIR = "vector_db_faiss" 
-UPLOAD_DIR = "uploaded_files"
+DB_DIR = "vector_db_ctx" 
+LIBRARY_DIR = "document_library"
 
 class AIEngine:
     def __init__(self):
         self.llm = None
         self.current_model_id = "pro"
         self.jobs = {} 
+        self.active_files = [] 
         self.load_llm(self.current_model_id)
+        
+        if not os.path.exists(LIBRARY_DIR):
+            os.makedirs(LIBRARY_DIR)
 
     def load_llm(self, model_id: str):
         config = AVAILABLE_MODELS.get(model_id, AVAILABLE_MODELS["pro"])
@@ -48,30 +48,41 @@ class AIEngine:
             print(f"[AI Error] Connection failed: {e}")
             return False
 
-    # --- 1. GESTIONE DATABASE ---
-    def rebuild_db(self):
+    # --- RICOSTRUZIONE SU RICHIESTA (PATH A) ---
+    def load_context(self, filenames: List[str]):
+        if set(filenames) == set(self.active_files) and self.get_vector_db() is not None:
+            print("[AI] Contesto già attivo. Skip reload.")
+            return len(filenames)
+
+        print(f"[AI] Caricamento contesto per: {filenames}")
         gc.collect()
+        
         if os.path.exists(DB_DIR):
             try: shutil.rmtree(DB_DIR)
             except: pass
             
-        if not os.path.exists(UPLOAD_DIR): os.makedirs(UPLOAD_DIR)
-        files = [f for f in os.listdir(UPLOAD_DIR) if f.endswith('.pdf')]
-        
-        if not files: return 0
-
         all_docs = []
-        for f in files:
-            path = os.path.join(UPLOAD_DIR, f)
+        loaded_files = []
+
+        for f_name in filenames:
+            path = os.path.join(LIBRARY_DIR, f_name)
+            if not os.path.exists(path):
+                print(f"[WARN] File non trovato in archivio: {f_name}")
+                continue
+                
             try:
                 loader = PyPDFLoader(path)
                 docs = loader.load()
-                for d in docs: d.metadata['source'] = f 
+                for d in docs: 
+                    d.metadata['source'] = f_name 
                 all_docs.extend(docs)
+                loaded_files.append(f_name)
             except Exception as e:
-                print(f"[Error] Failed loading {f}: {e}")
+                print(f"[Error] Failed loading {f_name}: {e}")
 
-        if not all_docs: return 0
+        if not all_docs:
+            self.active_files = []
+            return 0
 
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
         splits = text_splitter.split_documents(all_docs)
@@ -80,10 +91,12 @@ class AIEngine:
         try:
             vector_db = FAISS.from_documents(splits, embeddings)
             vector_db.save_local(DB_DIR)
-            print(f"[DB] Database ricostruito con {len(files)} file.")
-            return len(files)
+            self.active_files = loaded_files
+            print(f"[DB] Database rigenerato con {len(loaded_files)} file.")
+            return len(loaded_files)
         except Exception as e:
             print(f"[DB Error] {e}")
+            self.active_files = []
             return 0
 
     def get_vector_db(self):
@@ -94,7 +107,6 @@ class AIEngine:
             except: return None
         return None
 
-    # --- 2. CHAT CON DOCUMENTI (RAG) ---
     def get_chat_response(self, question: str):
         vector_db = self.get_vector_db()
         if not vector_db: return "Carica un PDF per iniziare a chattare."
@@ -103,38 +115,41 @@ class AIEngine:
         docs = retriever.invoke(question)
         context_text = "\n\n".join([d.page_content for d in docs])
 
+        # PROMPT CHAT (ENGLISH)
         prompt = ChatPromptTemplate.from_template("""
-        Sei un assistente di studio esperto. Rispondi alla domanda basandoti SOLO sul contesto fornito.
-        Se la risposta non è nel contesto, dillo chiaramente.
+        You are an expert study assistant. Answer the question based ONLY on the provided context.
+        If the answer is not in the context, state it clearly.
         
-        CONTESTO:
+        CONTEXT:
         {context}
         
-        DOMANDA: {input}
+        QUESTION: {input}
+        
+        IMPORTANT: Answer in the same language as the question.
         """)
         
         chain = prompt | self.llm | StrOutputParser()
         return chain.invoke({"context": context_text, "input": question})
 
-    # --- 3. VALUTAZIONE RISPOSTE (GRADING) ---
     def grade_answer(self, question: str, correct_answer: str, user_answer: str, lang: str):
+        # PROMPT GRADING (ENGLISH)
         prompt_text = """
-        Sei un professore universitario. Valuta la risposta dello studente.
+        You are a strict university professor. Grade the student's answer.
         
-        DOMANDA: {q}
-        RIFERIMENTO CORRETTO: {ref}
-        RISPOSTA STUDENTE: {user}
+        QUESTION: {q}
+        REFERENCE ANSWER: {ref}
+        STUDENT ANSWER: {user}
         
-        Compito:
-        1. Assegna un voto da 0 a 100.
-        2. "feedback": Scrivi un commento critico sull'errore o sulla correttezza.
-        3. "ideal_answer": Scrivi la versione perfetta e sintetica della risposta corretta.
+        TASK:
+        1. Assign a score from 0 to 100.
+        2. "feedback": Write a critical comment on mistakes or correctness in {lang}.
+        3. "ideal_answer": Write the perfect, synthetic correct answer in {lang}.
         
-        Rispondi ESCLUSIVAMENTE con questo formato JSON:
+        RESPOND ONLY IN THIS JSON FORMAT:
         {{
             "score": 85,
-            "feedback": "Il concetto è giusto ma manca...",
-            "ideal_answer": "La definizione formale corretta è..."
+            "feedback": "The concept is correct but...",
+            "ideal_answer": "The formal definition is..."
         }}
         """
         prompt = ChatPromptTemplate.from_template(prompt_text)
@@ -147,82 +162,46 @@ class AIEngine:
             return json.loads(clean_json_output(res))
         except Exception as e:
             print(f"[Grade Error] {e}")
-            # Fallback in caso di errore
-            return {
-                "score": 0, 
-                "feedback": "Errore durante la valutazione.", 
-                "ideal_answer": correct_answer
-            }
+            return {"score": 0, "feedback": "Evaluation error.", "ideal_answer": correct_answer}
 
-    # --- 4. RIGENERAZIONE DOMANDA ---
-    # --- AGGIUNGI QUESTO METODO ALLA CLASSE AIEngine ---
     def regenerate_question(self, original_text: str, instruction: str, lang: str):
+        # PROMPT REGENERATE (ENGLISH)
         prompt_template = """
-        Sei un esaminatore esperto. Modifica la domanda seguendo l'istruzione.
+        You are an expert examiner. Modify the question following the instruction.
         
-        DOMANDA ORIGINALE: {q}
-        ISTRUZIONE UTENTE: {instr}
-        LINGUA OUTPUT: {lang}
+        ORIGINAL QUESTION: {q}
+        USER INSTRUCTION: {instr}
+        OUTPUT LANGUAGE: {lang}
         
-        Rispondi SOLO con un JSON valido:
+        RESPOND ONLY WITH VALID JSON:
         {{
-            "domanda": "Nuovo testo...",
-            "tipo": "multipla" (o "aperta"),
-            "opzioni": ["A)...", "B)..."], (se multipla)
-            "corretta": "...",
+            "domanda": "New question text...",
+            "tipo": "multipla" (or "aperta"),
+            "opzioni": ["A)...", "B)..."], (only if multiple)
+            "corretta": "Correct answer...",
             "source_file": "AI Regenerated"
         }}
         """
-        
         try:
             prompt = ChatPromptTemplate.from_template(prompt_template)
             chain = prompt | self.llm | StrOutputParser()
-            
-            response = chain.invoke({
-                "q": original_text,
-                "instr": instruction,
-                "lang": lang
-            })
-            
-            clean_json = clean_json_output(response)
-            data = json.loads(clean_json)
-            
-            # Mappiamo i dati per il frontend
+            response = chain.invoke({"q": original_text, "instr": instruction, "lang": lang})
+            data = json.loads(clean_json_output(response))
             return {
                 "questionText": data.get("domanda", ""),
                 "type": data.get("tipo", "aperta"),
                 "options": data.get("opzioni", []) if data.get("tipo") == "multipla" else [],
                 "correctAnswer": data.get("corretta", ""),
                 "sourceFile": "AI Regenerated",
-                "isLocked": False  # Sblocchiamo la domanda così puoi rispondere di nuovo
+                "isLocked": False 
             }
-            
         except Exception as e:
-            print(f"[Regen Error] {e}")
             return None
-        
-    # --- 5. GENERAZIONE QUIZ ---
+
+    # --- 5. GENERAZIONE QUIZ (CORE) ---
     def generate_quiz_task(self, job_id: str, request: QuizRequest):
         try:
             self.jobs[job_id]["status"] = "processing"
-            
-            vector_db = self.get_vector_db()
-            if not vector_db:
-                raise Exception("Database non trovato. Carica prima un PDF.")
-
-            # --- LOGICA DI RECUPERO ---
-            # FAISS supporta MMR proprio come Chroma
-            retriever = vector_db.as_retriever(
-                search_type="mmr", 
-                search_kwargs={'k': max(40, request.num_questions * 3), 'lambda_mult': 0.5}
-            )
-            
-            # Se prompt vuoto, cerca concetti base
-            query = request.custom_prompt if len(request.custom_prompt) > 2 else "concetti fondamentali riassunto"
-            all_retrieved_docs = retriever.invoke(query)
-            
-            # Shuffle richiesto
-            random.shuffle(all_retrieved_docs)
             
             # --- PLANNING ---
             total_needed = request.num_questions
@@ -238,45 +217,64 @@ class AIEngine:
 
             remaining_open = open_needed
             remaining_total = total_needed
+            # -----------------------------------------------
+
+            vector_db = self.get_vector_db()
+            if not vector_db:
+                raise Exception("Database not found. Load a PDF first.")
+
+            # --- RETRIEVAL ---
+            retriever = vector_db.as_retriever(
+                search_type="mmr", 
+                search_kwargs={'k': max(40, request.num_questions * 3), 'lambda_mult': 0.5}
+            )
             
+            query = request.custom_prompt if len(request.custom_prompt) > 2 else "main concepts summary definitions"
+            all_retrieved_docs = retriever.invoke(query)
+            
+            random.shuffle(all_retrieved_docs)
+            
+            # PROMPT GENERAZIONE (ENGLISH - OPTIMIZED)
             prompt_template = """
-            Sei un esaminatore tecnico esperto.
+            You are an expert technical examiner.
             
-            ISTRUZIONI UTENTE:
-            - Lingua output: {lang} (IMPORTANTE: Traduci tutto il contenuto in {lang})
-            - Focus/Stile: {custom_prompt}
+            USER INSTRUCTIONS:
+            - OUTPUT LANGUAGE: {lang} (CRITICAL: Translate all content to {lang})
+            - TOPIC/STYLE: {custom_prompt}
             
-            FONTI:
+            SOURCE CONTEXT:
             {context_slice}
             
-            COMPITO BATCH:
-            Genera:
-            - {num_mc} domande a Risposta Multipla (Max {max_opt} opzioni).
-            - {num_open} domande a Risposta Aperta.
-
-            REGOLE:
-            1. IGNORA info amministrative, date, nomi docenti, link, email.
-            2. Estrai "source_file" dall'intestazione [File: ...] del testo.
-            3. Rispondi ESCLUSIVAMENTE in JSON valido.
+            TASK:
+            Generate a quiz based ONLY on the context above.
+            - {num_mc} Multiple Choice Questions (Max {max_opt} options).
+            - {num_open} Open-Ended Questions.
             
-            FORMATO JSON ({lang}):
+            IMPORTANT RULES:
+            1. If {num_mc} is 0, DO NOT generate multiple choice questions.
+            2. If {num_open} is 0, DO NOT generate open-ended questions.
+            3. IGNORE administrative info (dates, emails, author names).
+            4. Extract "source_file" from the text header [File: ...].
+            
+            REQUIRED JSON FORMAT ({lang}):
             {{
                 "questions": [
                     {{ 
-                        "domanda": "...", 
+                        "domanda": "Question text...", 
                         "tipo": "multipla", 
-                        "opzioni": ["A)...", "B)..."], 
-                        "corretta": "A)...",
-                        "source_file": "nome_esatto_file.pdf"
+                        "opzioni": ["A) Correct", "B) Wrong"], 
+                        "corretta": "A) Correct",
+                        "source_file": "exact_filename.pdf"
                     }},
                     {{ 
-                        "domanda": "...", 
+                        "domanda": "Open question text...", 
                         "tipo": "aperta",
-                        "source_file": "nome_esatto_file.pdf"
+                        "corretta": "Synthetic ideal answer...",
+                        "source_file": "exact_filename.pdf"
                     }}
                 ]
             }}
-            Evita duplicati di: {history_topics}
+            Avoid duplicates of: {history_topics}
             """
             
             all_questions = []
@@ -315,13 +313,13 @@ class AIEngine:
                 if current_doc_index >= len(all_retrieved_docs):
                     current_doc_index = 0
                     
-                history_topics = "Nessuno"
+                history_topics = "None"
                 if generated_hashes:
                     history_topics = ", ".join([h[:15]+"..." for h in generated_hashes[-10:]])
 
                 try:
                     prompt = ChatPromptTemplate.from_template(prompt_template)
-                    chain = prompt | self.llm
+                    chain = prompt | self.llm | StrOutputParser()
                     
                     response = chain.invoke({
                         "context_slice": context_slice_text,
@@ -333,26 +331,39 @@ class AIEngine:
                         "custom_prompt": request.custom_prompt
                     })
                     
-                    clean_json = clean_json_output(response.content if hasattr(response, 'content') else str(response))
+                    clean_json = clean_json_output(response)
                     data = json.loads(clean_json)
                     new_qs = data.get("questions", [])
                     
                     valid_batch = []
                     for q in new_qs:
                         q_text = q.get('domanda', '').strip()
-                        q_type = q.get('tipo', 'multipla')
+                        q_type = q.get('tipo', 'multipla').lower()
                         
-                        s_file = q.get('source_file', '').strip()
-                        if not s_file or s_file.lower() == "unknown":
-                            q['source_file'] = fallback_source
+                        # --- FILTRO SICUREZZA ---
+                        if request.question_type == "open" and q_type != "aperta":
+                            continue
+                        if request.question_type == "multiple" and q_type != "multipla":
+                            continue
                         
+                        # --- FIX OPZIONI ---
                         if q_type == 'multipla':
                             opts = q.get('opzioni', [])
-                            if len(opts) > request.max_options:
+                            if not opts:
+                                if request.question_type == "multiple":
+                                    continue 
+                                else:
+                                    q['tipo'] = 'aperta'
+                                    q_type = 'aperta'
+                            elif len(opts) > request.max_options:
                                 q['opzioni'] = opts[:request.max_options]
                         else:
                             q.pop("opzioni", None)
 
+                        s_file = q.get('source_file', '').strip()
+                        if not s_file or s_file.lower() == "unknown":
+                            q['source_file'] = fallback_source
+                        
                         if q_text and q_text not in generated_hashes:
                             valid_batch.append(q)
                             generated_hashes.append(q_text)

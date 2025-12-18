@@ -484,6 +484,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restart'**
   String get restartQuiz;
+
+  /// No description provided for @errorFileExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: \'{fileName}\' already exists in library.'**
+  String errorFileExists(String fileName);
+
+  /// No description provided for @errorUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload failed for {fileName}'**
+  String errorUploadFailed(String fileName);
+
+  /// No description provided for @errorSelectFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select at least one file from the Archive.'**
+  String get errorSelectFile;
+
+  /// No description provided for @errorLoadContext.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load context. Please check backend connection.'**
+  String get errorLoadContext;
+
+  /// No description provided for @errorStartGeneration.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to start generation job'**
+  String get errorStartGeneration;
+
+  /// No description provided for @successExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz Exported Successfully!'**
+  String get successExport;
+
+  /// No description provided for @errorExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Failed: {error}'**
+  String errorExport(String error);
+
+  /// No description provided for @successImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiz Imported Successfully!'**
+  String get successImport;
+
+  /// No description provided for @errorImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Failed: {error}'**
+  String errorImport(String error);
+
+  /// No description provided for @renameSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Session'**
+  String get renameSession;
+
+  /// No description provided for @renameQuiz.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Quiz'**
+  String get renameQuiz;
+
+  /// No description provided for @newName.
+  ///
+  /// In en, this message translates to:
+  /// **'New name'**
+  String get newName;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @addNewPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New PDF'**
+  String get addNewPdf;
+
+  /// No description provided for @uploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading...'**
+  String get uploading;
+
+  /// No description provided for @libraryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Library is empty'**
+  String get libraryEmpty;
+
+  /// No description provided for @selectedFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String selectedFiles(int count);
+
+  /// No description provided for @deleteSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Selected'**
+  String get deleteSelected;
+
+  /// No description provided for @importedModeWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠️ IMPORTED MODE: Source files not found. AI Chat and Grading are disabled.'**
+  String get importedModeWarning;
+
+  /// No description provided for @aiGradingUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠️ AI Grading is unavailable because source files are missing (Imported Mode).'**
+  String get aiGradingUnavailable;
+
+  /// No description provided for @aiChatUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠️ AI Unavailable: Source documents are missing. Chat is disabled for this imported session.'**
+  String get aiChatUnavailable;
+
+  /// No description provided for @aiRegenUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Regeneration unavailable in Imported Mode.'**
+  String get aiRegenUnavailable;
+
+  /// No description provided for @noQuestionsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No questions found.'**
+  String get noQuestionsFound;
+
+  /// No description provided for @editQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Question'**
+  String get editQuestion;
+
+  /// No description provided for @updateAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Update AI'**
+  String get updateAi;
+
+  /// No description provided for @aiEvaluation.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Evaluation: {score}/100'**
+  String aiEvaluation(int score);
+
+  /// No description provided for @aiUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Unavailable'**
+  String get aiUnavailable;
+
+  /// No description provided for @feedbackLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'FEEDBACK'**
+  String get feedbackLabel;
+
+  /// No description provided for @idealAnswerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'IDEAL ANSWER'**
+  String get idealAnswerLabel;
+
+  /// No description provided for @systemSpecs.
+  ///
+  /// In en, this message translates to:
+  /// **'System Specs'**
+  String get systemSpecs;
+
+  /// No description provided for @backendApi.
+  ///
+  /// In en, this message translates to:
+  /// **'Backend API'**
+  String get backendApi;
+
+  /// No description provided for @hardware.
+  ///
+  /// In en, this message translates to:
+  /// **'HARDWARE'**
+  String get hardware;
+
+  /// No description provided for @aiModels.
+  ///
+  /// In en, this message translates to:
+  /// **'AI MODELS'**
+  String get aiModels;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @aiModelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Model'**
+  String get aiModelLabel;
+
+  /// No description provided for @typeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get typeLabel;
+
+  /// No description provided for @allTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'All Types'**
+  String get allTypes;
+
+  /// No description provided for @openType.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get openType;
+
+  /// No description provided for @multipleChoiceType.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple Choice'**
+  String get multipleChoiceType;
+
+  /// No description provided for @allFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'All Files'**
+  String get allFiles;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
