@@ -294,7 +294,7 @@ class QuizCard extends StatelessWidget {
                           
                           Text(feedbackPart, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, height: 1.5)),
 
-                          if (!isWarning && idealPart != null) ...[
+                          if (idealPart != null) ...[
                              const SizedBox(height: 15),
                              const Divider(color: Colors.white12),
                              const SizedBox(height: 15),
