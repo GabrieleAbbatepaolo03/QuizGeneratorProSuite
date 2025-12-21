@@ -147,5 +147,17 @@
   "openType": "Abierta",
   "multipleChoiceType": "Opción Múltiple",
   "allFiles": "Todos los Archivos",
-  "uploadToUnlock": "Sube un PDF para desbloquear la generación de cuestionarios"
+  "uploadToUnlock": "Sube un PDF para desbloquear la generación de cuestionarios",
+  "quizConfigTitle": "Configurar Cuestionario",
+  "selectAiModel": "Seleccionar Modelo IA",
+  "questionType": "Tipo de Pregunta",
+  "optionsCount": "Cantidad de Opciones",
+  "initializing": "Iniciando...",
+  "analyzingTopics": "Analizando Temas...",
+  "stopGeneration": "Detener Generación",
+  "stopping": "Deteniendo...",
+  "aborting": "Abortando...",
+  "processing": "Procesando...",
+  "completed": "¡Completado!",
+  "generationStoppedSafely": "Generación detenida con seguridad."
 }

@@ -143,7 +143,7 @@ class _StudyScreenState extends State<StudyScreen> {
       q.isLocked = true;
     });
 
-    if (q.type == "multipla") {
+    if (q.type == "multiple_choice") {
       bool isCorrect = _isAnswerMatching(answer, q.correctAnswer);
       
       setState(() {
@@ -411,33 +411,47 @@ class _StudyScreenState extends State<StudyScreen> {
     );
   }
 
+  bool _isChatLoading = false;
+
   void _sendChatMessage() async {
     final l10n = AppLocalizations.of(context)!;
     final text = _chatInputController.text.trim();
     if (text.isEmpty) return;
     
+    // 1. Add user message and clear input immediately
     setState(() {
       _chatMessages.add({'role': 'user', 'text': text});
       _chatInputController.clear();
+      // DO NOT enable loading yet!
     });
 
+    // 2. Check if AI is available (Import Mode check)
     if (!_isAiAvailable) {
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 300));
       if (mounted) {
         setState(() {
           _chatMessages.add({
             'role': 'system', 
             'text': l10n.aiChatUnavailable
           });
+          // Loading was never enabled, so no need to disable it.
         });
       }
       return;
     }
 
-    final response = await ApiService.chat(text);
+    // 3. AI is available: NOW enable loading
+    setState(() {
+      _isChatLoading = true; 
+    });
+
+    final locale = Localizations.localeOf(context).languageCode;
+    final response = await ApiService.chat(text, locale);
+    
     if (mounted) {
       setState(() {
         _chatMessages.add({'role': 'ai', 'text': response});
+        _isChatLoading = false; // Disable loading
       });
     }
   }
@@ -508,8 +522,8 @@ class _StudyScreenState extends State<StudyScreen> {
                               value: _filterType,
                               items: [
                                 DropdownMenuItem(value: "all", child: Text(l10n.allTypes)),
-                                DropdownMenuItem(value: "aperta", child: Text(l10n.openType)),
-                                DropdownMenuItem(value: "multipla", child: Text(l10n.multipleChoiceType)),
+                                DropdownMenuItem(value: "open_ended", child: Text(l10n.openType)),
+                                DropdownMenuItem(value: "multiple_choice", child: Text(l10n.multipleChoiceType)),
                               ],
                               onChanged: (v) { setState(() => _filterType = v!); _applyFilters(); }
                             ),
@@ -669,6 +683,7 @@ class _StudyScreenState extends State<StudyScreen> {
                 messages: _chatMessages,
                 controller: _chatInputController,
                 onSend: _sendChatMessage,
+                isTyping: _isChatLoading,
               ),
             ),
           ),

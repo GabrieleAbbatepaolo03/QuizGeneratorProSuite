@@ -147,5 +147,17 @@
   "openType": "ክፍት",
   "multipleChoiceType": "ምርጫ",
   "allFiles": "ሁሉም ፋይሎች",
-  "uploadToUnlock": "የጥያቄ ማመንጨትን ለመክፈት PDF ይስቀሉ"
+  "uploadToUnlock": "የጥያቄ ማመንጨትን ለመክፈት PDF ይስቀሉ",
+  "quizConfigTitle": "ጥያቄ አዋቅር",
+  "selectAiModel": "የ AI ሞዴል ይምረጡ",
+  "questionType": "የጥያቄ ዓይነት",
+  "optionsCount": "የምርጫዎች ብዛት",
+  "initializing": "በማስጀመር ላይ...",
+  "analyzingTopics": "ርዕሶችን በመተንተን ላይ...",
+  "stopGeneration": "ማመንጨት አቁም",
+  "stopping": "በማቆም ላይ...",
+  "aborting": "በማቋረጥ ላይ...",
+  "processing": "በማስኬድ ላይ...",
+  "completed": "ተጠናቅቋል!",
+  "generationStoppedSafely": "ማመንጨት በደህና ቆሟል።"
 }

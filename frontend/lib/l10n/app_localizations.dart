@@ -742,6 +742,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Upload a PDF to unlock Quiz Generation'**
   String get uploadToUnlock;
+
+  /// No description provided for @quizConfigTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure your Quiz'**
+  String get quizConfigTitle;
+
+  /// No description provided for @selectAiModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select AI Model'**
+  String get selectAiModel;
+
+  /// No description provided for @questionType.
+  ///
+  /// In en, this message translates to:
+  /// **'Question Type'**
+  String get questionType;
+
+  /// No description provided for @optionsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Options Count'**
+  String get optionsCount;
+
+  /// No description provided for @initializing.
+  ///
+  /// In en, this message translates to:
+  /// **'Initializing...'**
+  String get initializing;
+
+  /// No description provided for @analyzingTopics.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing Topics...'**
+  String get analyzingTopics;
+
+  /// No description provided for @stopGeneration.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop Generation'**
+  String get stopGeneration;
+
+  /// No description provided for @stopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopping...'**
+  String get stopping;
+
+  /// No description provided for @aborting.
+  ///
+  /// In en, this message translates to:
+  /// **'Aborting...'**
+  String get aborting;
+
+  /// No description provided for @processing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing...'**
+  String get processing;
+
+  /// No description provided for @completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed!'**
+  String get completed;
+
+  /// No description provided for @generationStoppedSafely.
+  ///
+  /// In en, this message translates to:
+  /// **'Generation stopped safely.'**
+  String get generationStoppedSafely;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

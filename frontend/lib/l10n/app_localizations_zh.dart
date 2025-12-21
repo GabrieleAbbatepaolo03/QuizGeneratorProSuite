@@ -340,4 +340,40 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get uploadToUnlock => '上传 PDF 以解锁测验生成';
+
+  @override
+  String get quizConfigTitle => '配置测验';
+
+  @override
+  String get selectAiModel => '选择 AI 模型';
+
+  @override
+  String get questionType => '问题类型';
+
+  @override
+  String get optionsCount => '选项数量';
+
+  @override
+  String get initializing => '正在初始化...';
+
+  @override
+  String get analyzingTopics => '正在分析主题...';
+
+  @override
+  String get stopGeneration => '停止生成';
+
+  @override
+  String get stopping => '停止中...';
+
+  @override
+  String get aborting => '正在中止...';
+
+  @override
+  String get processing => '处理中...';
+
+  @override
+  String get completed => '完成！';
+
+  @override
+  String get generationStoppedSafely => '生成已安全停止。';
 }

@@ -340,4 +340,40 @@ class AppLocalizationsAm extends AppLocalizations {
 
   @override
   String get uploadToUnlock => 'የጥያቄ ማመንጨትን ለመክፈት PDF ይስቀሉ';
+
+  @override
+  String get quizConfigTitle => 'ጥያቄ አዋቅር';
+
+  @override
+  String get selectAiModel => 'የ AI ሞዴል ይምረጡ';
+
+  @override
+  String get questionType => 'የጥያቄ ዓይነት';
+
+  @override
+  String get optionsCount => 'የምርጫዎች ብዛት';
+
+  @override
+  String get initializing => 'በማስጀመር ላይ...';
+
+  @override
+  String get analyzingTopics => 'ርዕሶችን በመተንተን ላይ...';
+
+  @override
+  String get stopGeneration => 'ማመንጨት አቁም';
+
+  @override
+  String get stopping => 'በማቆም ላይ...';
+
+  @override
+  String get aborting => 'በማቋረጥ ላይ...';
+
+  @override
+  String get processing => 'በማስኬድ ላይ...';
+
+  @override
+  String get completed => 'ተጠናቅቋል!';
+
+  @override
+  String get generationStoppedSafely => 'ማመንጨት በደህና ቆሟል።';
 }

@@ -340,4 +340,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get uploadToUnlock => 'Upload a PDF to unlock Quiz Generation';
+
+  @override
+  String get quizConfigTitle => 'Configure your Quiz';
+
+  @override
+  String get selectAiModel => 'Select AI Model';
+
+  @override
+  String get questionType => 'Question Type';
+
+  @override
+  String get optionsCount => 'Options Count';
+
+  @override
+  String get initializing => 'Initializing...';
+
+  @override
+  String get analyzingTopics => 'Analyzing Topics...';
+
+  @override
+  String get stopGeneration => 'Stop Generation';
+
+  @override
+  String get stopping => 'Stopping...';
+
+  @override
+  String get aborting => 'Aborting...';
+
+  @override
+  String get processing => 'Processing...';
+
+  @override
+  String get completed => 'Completed!';
+
+  @override
+  String get generationStoppedSafely => 'Generation stopped safely.';
 }

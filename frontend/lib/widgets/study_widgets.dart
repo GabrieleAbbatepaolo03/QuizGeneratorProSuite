@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -77,7 +78,7 @@ class QuizCard extends StatelessWidget {
     String feedbackPart = question.aiFeedback ?? "";
     String? idealPart;
     
-    if (question.type != "multipla" && feedbackPart.contains("###SPLIT###")) {
+    if (question.type != "multiple_choice" && feedbackPart.contains("###SPLIT###")) {
       final parts = feedbackPart.split("###SPLIT###");
       feedbackPart = parts[0];
       if (parts.length > 1) idealPart = parts[1];
@@ -110,7 +111,7 @@ class QuizCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(color: kVividGreen.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
                           child: Text(
-                            question.type == "multipla" ? l10n.multipleChoiceType.toUpperCase() : l10n.openType.toUpperCase(),
+                            question.type == "multiple_choice" ? l10n.multipleChoiceType.toUpperCase() : l10n.openType.toUpperCase(),
                             style: GoogleFonts.poppins(color: kVividGreen, fontSize: 10, fontWeight: FontWeight.bold)
                           ),
                         ),
@@ -159,7 +160,7 @@ class QuizCard extends StatelessWidget {
               const SizedBox(height: 40),
 
               // --- RISPOSTA MULTIPLA ---
-              if (question.type == "multipla")
+              if (question.type == "multiple_choice")
                 ...question.options.map((opt) {
                   bool isSelected = question.userAnswer == opt;
                   
@@ -315,19 +316,20 @@ class QuizCard extends StatelessWidget {
   }
 }
 
-// ... ChatPanel e FilterDropdown restano uguali ...
 class ChatPanel extends StatelessWidget {
   final VoidCallback onClose;
   final List<Map<String, String>> messages;
   final TextEditingController controller;
   final VoidCallback onSend;
+  final bool isTyping;
 
   const ChatPanel({
     super.key,
     required this.onClose,
     required this.messages,
     required this.controller,
-    required this.onSend,
+    required this.onSend, 
+    this.isTyping = false,
   });
 
   @override
@@ -355,8 +357,24 @@ class ChatPanel extends StatelessWidget {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: messages.length,
+              itemCount: messages.length + (isTyping ? 1 : 0),
               itemBuilder: (ctx, i) {
+                
+                if (isTyping && i == messages.length) {
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.black26,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const TypingIndicator(), // WIDGET ANIMATO
+                    ),
+                  );
+                }
+
                 final msg = messages[i];
                 bool isUser = msg['role'] == 'user';
                 return Align(
@@ -394,6 +412,65 @@ class ChatPanel extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class TypingIndicator extends StatefulWidget {
+  const TypingIndicator({super.key});
+
+  @override
+  State<TypingIndicator> createState() => _TypingIndicatorState();
+}
+
+class _TypingIndicatorState extends State<TypingIndicator> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 40,
+      height: 20,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(3, (index) {
+          return AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              // Calcola un offset sinusoide per ogni pallino, sfasato dall'indice
+              double value = _controller.value + (index * 0.2);
+              double opacity = (0.3 + 0.7 * (0.5 * (1 + sin(value * 6.28)))).clamp(0.2, 1.0).toDouble(); // Opacity pulse
+              
+              return Opacity(
+                opacity: opacity,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              );
+            },
+          );
+        }),
       ),
     );
   }

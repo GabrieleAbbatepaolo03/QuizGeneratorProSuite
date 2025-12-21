@@ -30,13 +30,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   
   bool _isLoadingData = false;
   bool _isUploading = false;
+  bool _isAborting = false;
   
   // Generation State
   bool _isGenerating = false;
   double _generationProgress = 0.0;
+  String _generationStatusText = ""; // NUOVO: Testo di stato
   Timer? _pollingTimer; 
   
   QuizSession? _generatedSession;
+  String? _currentJobId;
 
   String? _selectedModelId;
   String _selectedType = "mixed";
@@ -92,7 +95,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  // --- UPLOAD LOGIC ---
   Future<void> _uploadPdf() async {
     final l10n = AppLocalizations.of(context)!;
     
@@ -138,18 +140,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     await _refreshData();
   }
 
-  // --- GENERATION LOGIC ---
   Future<void> _startQuizGeneration() async {
-    if (_isGenerating) return;
+    if (_isGenerating || _isAborting) return; // Blocco se sta già lavorando o abortendo
     
     final l10n = AppLocalizations.of(context)!;
 
     if (_selectedFiles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.errorSelectFile), 
-          backgroundColor: Colors.orange
-        )
+        SnackBar(content: Text(l10n.errorSelectFile), backgroundColor: Colors.orange)
       );
       return;
     }
@@ -157,45 +155,56 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     setState(() {
       _generatedSession = null;
       _isGenerating = true;
+      _isAborting = false; // Reset flag abort
       _generationProgress = 0.0;
+      _generationStatusText = l10n.initializing;
     });
 
     try {
+      // ... (Logica loadContext e switchModel invariata) ...
       bool contextOk = await ApiService.loadContext(_selectedFiles.toList());
+      if (!contextOk) throw l10n.errorLoadContext;
       
-      if (!contextOk) {
-        throw l10n.errorLoadContext;
-      }
-
-      if (_selectedModelId != null) {
-         await ApiService.switchModel(_selectedModelId!);
-      }
+      if (_selectedModelId != null) await ApiService.switchModel(_selectedModelId!);
 
       final locale = Localizations.localeOf(context).languageCode;
-      final prompt = _promptController.text.isEmpty ? "General review" : _promptController.text;
+      final prompt = _promptController.text.isEmpty ? "Untitled" : _promptController.text;
       
       final jobId = await ApiService.startQuizGeneration(
         _numQuestions.round(), 
         prompt, 
         locale, 
         _selectedType,
-        _maxOptions
+        _maxOptions,
+        _selectedModelId ?? "balanced" 
       );
 
       if (jobId == null) throw l10n.errorStartGeneration;
 
+      setState(() => _currentJobId = jobId);
+
+      // --- TIMER DI POLLING MODIFICATO ---
       _pollingTimer = Timer.periodic(const Duration(milliseconds: 1000), (timer) async {
         final status = await ApiService.checkQuizStatus(jobId);
         if (status == null || !mounted) return;
 
         final state = status['status'];
-        final progress = status['progress'] as int;
         final total = status['total'] as int;
+        String phaseText;
+        if (_isAborting) {
+           phaseText = l10n.aborting;
+        } else {
+           phaseText = status['phase'] as String? ?? l10n.processing;
+        }
 
         setState(() {
-          _generationProgress = total > 0 ? (progress / total) : 0.0;
+          if (!_isAborting && total > 0) {
+             _generationProgress = (status['progress'] / total);
+          }
+          _generationStatusText = phaseText; 
         });
 
+        // 1. CASO COMPLETATO
         if (state == 'completed') {
           timer.cancel();
           final List<dynamic> questionsJson = status['result'];
@@ -215,19 +224,58 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               _isGenerating = false;
               _generatedSession = session;
               _generationProgress = 1.0;
+              _generationStatusText = l10n.completed; 
             });
           }
-        } else if (state == 'failed') {
+        } 
+        // 2. CASO FALLITO
+        else if (state == 'failed') {
           timer.cancel();
-          setState(() => _isGenerating = false);
+          _resetGenerationState();
           if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${status['error']}")));
+        }
+        else if (state == 'cancelled') {
+          timer.cancel();
+          _resetGenerationState();
+          if(mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.generationStoppedSafely), backgroundColor: Colors.orange) // USATO l10n
+          );}
         }
       });
 
     } catch (e) {
        _pollingTimer?.cancel();
-       setState(() => _isGenerating = false);
+       _resetGenerationState();
        if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+    }
+  }
+
+  void _resetGenerationState() {
+      if (!mounted) return;
+      setState(() {
+        _isGenerating = false;
+        _isAborting = false;
+        _generationProgress = 0.0;
+        _currentJobId = null;
+        _generationStatusText = "";
+      });
+  }
+  
+  Future<void> _stopGeneration() async {
+    if (_isAborting || _currentJobId == null) return;
+    
+    final l10n = AppLocalizations.of(context)!; // Recuperiamo l10n
+
+    setState(() {
+      _isAborting = true;
+      _generationStatusText = l10n.aborting; // USATO l10n
+    });
+
+    try {
+      await ApiService.stopGeneration(_currentJobId!);
+    } catch (e) {
+      debugPrint("Stop request failed: $e");
     }
   }
 
@@ -557,13 +605,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               promptController: _promptController,
                               isGenerating: _isGenerating,
                               generationProgress: _generationProgress,
+                              generationStatus: _generationStatusText, // Passaggio Stato UI
                               isReady: _generatedSession != null,
                               onModelChanged: (v) => setState(() { _selectedModelId = v; _generatedSession = null; }),
-                              onTypeChanged: (v) => setState(() { _selectedType = v; _generatedSession = null; }),
+                              onTypeChanged: (v) => setState(() { _selectedType = v!; _generatedSession = null; }),
                               onMaxOptionsChanged: (v) => setState(() { _maxOptions = v; _generatedSession = null; }),
                               onNumQuestionsChanged: (v) => setState(() { _numQuestions = v; _generatedSession = null; }),
                               onStartGeneration: _startQuizGeneration,
                               onOpenQuiz: _openGeneratedQuiz, 
+                              onStopGeneration: _stopGeneration,
                             ),
                           const SizedBox(height: 30),
                         ],

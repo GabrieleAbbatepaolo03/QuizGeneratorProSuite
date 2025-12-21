@@ -10,7 +10,7 @@ const Color kVividGreen = Color(0xFF00E676);
 const Color kSurfaceColor = Color(0xFF161616);
 const Color kCardColor = Color(0xFF1E1E1E);
 
-// --- 1. TILE CRONOLOGIA ---
+// --- 1. TILE CRONOLOGIA (Stile Originale Ripristinato) ---
 class HistoryTile extends StatelessWidget {
   final QuizSession session;
   final VoidCallback onTap;
@@ -128,7 +128,7 @@ class HistoryTile extends StatelessWidget {
   }
 }
 
-// --- 2. DIALOG SPECIFICHE SISTEMA ---
+// --- 2. DIALOGO SPECIFICHE SISTEMA ---
 class SystemSpecsDialog extends StatelessWidget {
   final Map<String, dynamic>? systemStatus;
 
@@ -204,7 +204,7 @@ class SystemSpecsDialog extends StatelessWidget {
   }
 }
 
-// --- 3. PANNELLO CONFIGURAZIONE QUIZ ---
+// --- 3. PANNELLO CONFIGURAZIONE QUIZ (Layout Ripristinato + Stato Dinamico) ---
 class QuizConfigPanel extends StatefulWidget {
   final List<ModelInfo> models;
   final String? selectedModelId;
@@ -214,6 +214,7 @@ class QuizConfigPanel extends StatefulWidget {
   final TextEditingController promptController;
   final bool isGenerating;
   final double generationProgress;
+  final String? generationStatus; 
   final bool isReady;
   
   final Function(String?) onModelChanged;
@@ -222,6 +223,7 @@ class QuizConfigPanel extends StatefulWidget {
   final Function(double) onNumQuestionsChanged;
   final VoidCallback onStartGeneration;
   final VoidCallback onOpenQuiz;
+  final VoidCallback onStopGeneration;
 
   const QuizConfigPanel({
     super.key,
@@ -233,23 +235,59 @@ class QuizConfigPanel extends StatefulWidget {
     required this.promptController,
     required this.isGenerating,
     required this.generationProgress,
+    this.generationStatus,
     required this.isReady,
     required this.onModelChanged,
     required this.onTypeChanged,
     required this.onMaxOptionsChanged,
     required this.onNumQuestionsChanged,
     required this.onStartGeneration,
-    required this.onOpenQuiz,
-  });
+    required this.onOpenQuiz, 
+    required this.onStopGeneration,
+    });
 
   @override
   State<QuizConfigPanel> createState() => _QuizConfigPanelState();
 }
 
 class _QuizConfigPanelState extends State<QuizConfigPanel> {
+  
+  String _buildProgressText(AppLocalizations l10n) {
+    String statusRaw = widget.generationStatus ?? l10n.initializing;
+    
+    // Controlliamo se lo stato corrisponde alla stringa localizzata di "Aborting"
+    if (statusRaw == l10n.aborting) {
+      return l10n.aborting;
+    }
+
+    String displayText = l10n.initializing;
+
+    // Mappatura delle stringhe "grezze" che arrivano dal backend (in Inglese) 
+    // alle stringhe localizzate del frontend
+    if (statusRaw.contains("Extracting") || statusRaw.contains("Topics")) {
+      displayText = l10n.analyzingTopics; 
+    } else if (statusRaw.contains("Generating") || statusRaw.contains("Questions")) {
+      displayText = l10n.generating;
+    } else if (widget.generationProgress == 0 && widget.isGenerating) {
+      displayText = l10n.initializing;
+    } else {
+       // Fallback per altri stati (es. "Processing...")
+       displayText = statusRaw; 
+    }
+
+    if (widget.generationProgress > 0) {
+       int current = (widget.generationProgress * widget.numQuestions).round();
+       int total = widget.numQuestions.round();
+       return "$displayText $current / $total";
+    }
+    return displayText;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // Controllo basato sul testo localizzato
+    final bool isAborting = widget.generationStatus == l10n.aborting;
     
     final dropdownDecor = InputDecoration(
       filled: true,
@@ -276,7 +314,7 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
             children: [
               const Icon(CupertinoIcons.slider_horizontal_3, color: kVividGreen),
               const SizedBox(width: 10),
-              Text(l10n.configQuiz, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1, color: Colors.white)),
+              Text(l10n.quizConfigTitle, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1, color: Colors.white)),
             ],
           ),
           const SizedBox(height: 24),
@@ -304,8 +342,8 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
                   style: GoogleFonts.poppins(color: Colors.white),
                   items: [
                     DropdownMenuItem(value: "mixed", child: Text(l10n.quizTypeMixed, style: const TextStyle(color: Colors.white))),
-                    DropdownMenuItem(value: "open", child: Text(l10n.quizTypeOpen, style: const TextStyle(color: Colors.white))),
-                    DropdownMenuItem(value: "multiple", child: Text(l10n.quizTypeMultiple, style: const TextStyle(color: Colors.white))),
+                    DropdownMenuItem(value: "open_ended", child: Text(l10n.quizTypeOpen, style: const TextStyle(color: Colors.white))),
+                    DropdownMenuItem(value: "multiple_choice", child: Text(l10n.quizTypeMultiple, style: const TextStyle(color: Colors.white))),
                   ],
                   onChanged: (widget.isGenerating || widget.isReady) ? null : (v) => widget.onTypeChanged(v!),
                 ),
@@ -330,6 +368,7 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
 
           Row(
             children: [
+              // SLIDER NUMERO DOMANDE
               Expanded(
                 flex: 2,
                 child: Column(
@@ -340,7 +379,9 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
                       offset: const Offset(-24, 0),
                       child: Slider(
                         value: widget.numQuestions, 
-                        min: 1, max: 100, divisions: 99, 
+                        min: 1, 
+                        max: 100, 
+                        divisions: 99, // Questo crea i "ticks" discreti (pallini)
                         activeColor: kVividGreen,
                         onChanged: (widget.isGenerating || widget.isReady) ? null : widget.onNumQuestionsChanged
                       ),
@@ -348,7 +389,8 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
                   ],
                 ),
               ),
-              if (widget.selectedType != "open") ...[
+
+              if (widget.selectedType != "open_ended") ...[
                 const SizedBox(width: 20),
                 Expanded(
                   flex: 1,
@@ -360,7 +402,9 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
                         offset: const Offset(-24, 0),
                         child: Slider(
                           value: widget.maxOptions.toDouble(), 
-                          min: 2, max: 5, divisions: 3, 
+                          min: 2, 
+                          max: 5, 
+                          divisions: 3, 
                           activeColor: kVividGreen,
                           onChanged: (widget.isGenerating || widget.isReady) ? null : (v) => widget.onMaxOptionsChanged(v.toInt())
                         ),
@@ -375,6 +419,7 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
           const SizedBox(height: 30),
 
           GestureDetector(
+            // Disabilita tap se sta generando O se sta abortendo
             onTap: widget.isGenerating 
                 ? null 
                 : (widget.isReady ? widget.onOpenQuiz : widget.onStartGeneration),
@@ -384,6 +429,7 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
               width: double.infinity,
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
+                // Se sta abortendo, manteniamo il colore ma magari un po' desaturato o uguale
                 color: widget.isReady ? kVividGreen : const Color(0xFF252525),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: widget.isGenerating 
@@ -392,6 +438,7 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
               ),
               child: Stack(
                 children: [
+                   // Progress Fill
                   if (!widget.isReady)
                     AnimatedFractionallySizedBox(
                       duration: const Duration(milliseconds: 300),
@@ -399,25 +446,32 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
                       heightFactor: 1.0,
                       alignment: Alignment.centerLeft,
                       child: Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(colors: [kVividGreen, Color(0xFF00C853)]),
+                        decoration: BoxDecoration(
+                          // Se sta abortendo, cambiamo colore alla barra? (Opzionale, qui diventa Arancione)
+                          gradient: isAborting 
+                            ? const LinearGradient(colors: [Colors.orangeAccent, Colors.deepOrange])
+                            : const LinearGradient(colors: [kVividGreen, Color(0xFF00C853)]),
                         ),
                       ),
                     ),
                   
+                  // Content
                   Center(
                     child: widget.isGenerating 
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const SizedBox(
+                          SizedBox(
                             width: 20, height: 20, 
-                            child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(Colors.white))
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5, 
+                              // Cambia colore spinner se aborting
+                              valueColor: AlwaysStoppedAnimation<Color>(isAborting ? Colors.white : Colors.white)
+                            )
                           ),
                           const SizedBox(width: 12),
-                          // FIX: Localized text for generating
                           Text(
-                            "${l10n.generating} ${(widget.generationProgress * widget.numQuestions).round()} / ${widget.numQuestions.round()}",
+                            _buildProgressText(l10n),
                             style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)
                           ),
                         ],
@@ -447,7 +501,34 @@ class _QuizConfigPanelState extends State<QuizConfigPanel> {
                 ],
               ),
             ),
-          )
+          ),
+
+          // --- STOP BUTTON ---
+          if (widget.isGenerating) ...[
+            const SizedBox(height: 16),
+            Center(
+              child: Opacity(
+                opacity: isAborting ? 0.5 : 1.0,
+                child: TextButton.icon(
+                  onPressed: isAborting ? null : widget.onStopGeneration,
+                  icon: const Icon(CupertinoIcons.stop_circle, size: 20, color: Colors.redAccent),
+                  // USATO l10n per le label del bottone
+                  label: Text(
+                    isAborting ? l10n.stopping : l10n.stopGeneration, 
+                    style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.redAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.redAccent.withOpacity(0.3))
+                    )
+                  ),
+                ),
+              ),
+            )
+          ]
         ],
       ),
     );
@@ -460,7 +541,6 @@ class EmptyStateButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // FIX: Access localized strings
     final l10n = AppLocalizations.of(context)!;
     
     return Container(
@@ -476,7 +556,6 @@ class EmptyStateButton extends StatelessWidget {
           children: [
             const Icon(CupertinoIcons.lock_fill, color: Colors.grey),
             const SizedBox(width: 10),
-            // FIX: Use localized string instead of hardcoded English
             Text(l10n.uploadToUnlock, style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16)),
           ],
         ),

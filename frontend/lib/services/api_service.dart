@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:quiz_generator_pro/models/quiz_models.dart'; // Nota l'import corretto
+import 'package:quiz_generator_pro/models/quiz_models.dart'; 
 
 class ApiService {
-  // IMPORTANTISSIMO: Assicurati che questa porta corrisponda a quella di Uvicorn (8001)
+  // Assicurati che la porta sia corretta (8001)
   static const String baseUrl = "http://127.0.0.1:8001";
 
   static Future<Map<String, dynamic>> getSystemStatus() async {
@@ -60,12 +60,15 @@ class ApiService {
     }
   }
 
-  static Future<String> chat(String question) async {
+  static Future<String> chat(String question, String language) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/chat'),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"question": question}),
+        body: jsonEncode({
+          "question": question,
+          "language": language 
+        }),
       );
       if (response.statusCode == 200) {
         final data = json.decode(utf8.decode(response.bodyBytes));
@@ -77,10 +80,9 @@ class ApiService {
     return "Error";
   }
 
-  // --- METODI GENERAZIONE QUIZ ---
-
+  // --- MODIFICATO: Aggiunto parametro modelId ---
   static Future<String?> startQuizGeneration(
-      int numQuestions, String prompt, String language, String type, int maxOptions) async {
+      int numQuestions, String prompt, String language, String type, int maxOptions, String modelId) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/quiz/start_generation'),
@@ -90,7 +92,8 @@ class ApiService {
           "custom_prompt": prompt,
           "language": language,
           "question_type": type,
-          "max_options": maxOptions
+          "max_options": maxOptions,
+          "model_id": modelId // ORA LO INVIAMO!
         }),
       );
 
@@ -172,6 +175,18 @@ class ApiService {
       return response.statusCode == 200;
     } catch (e) {
       print("Load Context Error: $e");
+      return false;
+    }
+  }
+
+  static Future<bool> stopGeneration(String jobId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/quiz/stop/$jobId'),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Stop Error: $e");
       return false;
     }
   }

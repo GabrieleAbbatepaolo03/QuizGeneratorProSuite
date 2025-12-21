@@ -147,5 +147,17 @@
   "openType": "开放式",
   "multipleChoiceType": "多项选择",
   "allFiles": "所有文件",
-  "uploadToUnlock": "上传 PDF 以解锁测验生成"
+  "uploadToUnlock": "上传 PDF 以解锁测验生成",
+  "quizConfigTitle": "配置测验",
+  "selectAiModel": "选择 AI 模型",
+  "questionType": "问题类型",
+  "optionsCount": "选项数量",
+  "initializing": "正在初始化...",
+  "analyzingTopics": "正在分析主题...",
+  "stopGeneration": "停止生成",
+  "stopping": "停止中...",
+  "aborting": "正在中止...",
+  "processing": "处理中...",
+  "completed": "完成！",
+  "generationStoppedSafely": "生成已安全停止。"
 }

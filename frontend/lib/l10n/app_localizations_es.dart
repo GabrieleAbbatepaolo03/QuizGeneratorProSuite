@@ -340,4 +340,40 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get uploadToUnlock => 'Sube un PDF para desbloquear la generación de cuestionarios';
+
+  @override
+  String get quizConfigTitle => 'Configurar Cuestionario';
+
+  @override
+  String get selectAiModel => 'Seleccionar Modelo IA';
+
+  @override
+  String get questionType => 'Tipo de Pregunta';
+
+  @override
+  String get optionsCount => 'Cantidad de Opciones';
+
+  @override
+  String get initializing => 'Iniciando...';
+
+  @override
+  String get analyzingTopics => 'Analizando Temas...';
+
+  @override
+  String get stopGeneration => 'Detener Generación';
+
+  @override
+  String get stopping => 'Deteniendo...';
+
+  @override
+  String get aborting => 'Abortando...';
+
+  @override
+  String get processing => 'Procesando...';
+
+  @override
+  String get completed => '¡Completado!';
+
+  @override
+  String get generationStoppedSafely => 'Generación detenida con seguridad.';
 }

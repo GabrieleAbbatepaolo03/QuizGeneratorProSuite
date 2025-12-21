@@ -41,7 +41,7 @@ class QuizSession {
 
 class QuizQuestion {
   final String questionText;
-  final String type; // "multipla" | "aperta"
+  final String type; // Ora userà: "multiple_choice" | "open_ended"
   final List<String> options;
   final String correctAnswer;
   final String sourceFile;
@@ -78,20 +78,43 @@ class QuizQuestion {
     };
   }
 
-factory QuizQuestion.fromJson(Map<String, dynamic> json) {
-    return QuizQuestion(
+  factory QuizQuestion.fromJson(Map<String, dynamic> json) {
+    // 1. Normalizzazione Tipo (Backend Standard -> Frontend Standard)
+    String rawType = json['type'] ?? json['tipo'] ?? "multiple_choice";
+    if (rawType.toLowerCase().contains('multi') || rawType.toLowerCase().contains('choice')) {
+      rawType = "multiple_choice";
+    } else {
+      rawType = "open_ended";
+    }
 
-      questionText: json['questionText'] ?? json['domanda'] ?? "",
-      type: json['type'] ?? json['tipo'] ?? "multipla",
-      options: json['options'] != null 
-          ? List<String>.from(json['options']) 
-          : (json['opzioni'] != null ? List<String>.from(json['opzioni']) : []),
-      correctAnswer: json['correctAnswer'] ?? json['corretta'] ?? "",
-      sourceFile: json['sourceFile'] ?? json['source_file'] ?? "Unknown",
+    // 2. Lettura Opzioni (Gestisce sia 'options' API che 'opzioni' legacy)
+    List<String> parsedOptions = [];
+    if (json['options'] != null) {
+      parsedOptions = List<String>.from(json['options']);
+    } else if (json['opzioni'] != null) {
+      parsedOptions = List<String>.from(json['opzioni']);
+    }
+
+    return QuizQuestion(
+      // Supporta: 'question' (Nuova API), 'questionText' (Locale), 'domanda' (Vecchia API)
+      questionText: json['question'] ?? json['questionText'] ?? json['domanda'] ?? "",
+      
+      type: rawType,
+      
+      options: parsedOptions,
+      
+      // Supporta: 'answer' (Nuova API), 'correctAnswer' (Locale), 'corretta' (Vecchia API)
+      correctAnswer: json['answer'] ?? json['correctAnswer'] ?? json['corretta'] ?? "",
+      
+      // Supporta: 'source_file' (API), 'sourceFile' (Locale)
+      sourceFile: json['source_file'] ?? json['sourceFile'] ?? "Unknown",
+      
       userAnswer: json['userAnswer'],
       isLocked: json['isLocked'] ?? false,
       aiScore: json['aiScore'],
-      aiFeedback: json['aiFeedback'],
+      
+      // Mappa 'explanation' dell'API nel campo feedback se disponibile e se il feedback è vuoto
+      aiFeedback: json['aiFeedback'] ?? (json['explanation'] != null ? "Explanation: ${json['explanation']}" : null),
     );
   }
 }

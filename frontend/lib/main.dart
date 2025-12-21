@@ -91,7 +91,7 @@ class _QuizAppState extends State<QuizApp> {
         
         sliderTheme: SliderThemeData(
           activeTrackColor: vividGreen,
-          inactiveTrackColor: Colors.grey[800], // FIXED: Gray background instead of dark/black
+          inactiveTrackColor: Colors.grey[800], 
           thumbColor: Colors.white,
           overlayColor: vividGreen.withOpacity(0.2),
           trackHeight: 4.0, 

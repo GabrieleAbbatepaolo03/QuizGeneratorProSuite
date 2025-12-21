@@ -147,5 +147,17 @@
   "openType": "Open",
   "multipleChoiceType": "Multiple Choice",
   "allFiles": "All Files",
-  "uploadToUnlock": "Upload a PDF to unlock Quiz Generation"
+  "uploadToUnlock": "Upload a PDF to unlock Quiz Generation",
+  "quizConfigTitle": "Configure your Quiz",
+  "selectAiModel": "Select AI Model",
+  "questionType": "Question Type",
+  "optionsCount": "Options Count",
+  "initializing": "Initializing...",
+  "analyzingTopics": "Analyzing Topics...",
+  "stopGeneration": "Stop Generation",
+  "stopping": "Stopping...",
+  "aborting": "Aborting...",
+  "processing": "Processing...",
+  "completed": "Completed!",
+  "generationStoppedSafely": "Generation stopped safely."
 }
